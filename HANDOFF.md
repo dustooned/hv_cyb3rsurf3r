@@ -137,6 +137,7 @@ Journal entry, April 25, 2026:
 - Verified in the in-app Chromium browser that key/click can start audio and show moving meters, but user still reports Chrome/Brave and iPad/mobile startup trouble.
 - Current rendering fix: checked-in `test.wav` remains as a mobile fallback, but `test.ogg` is preferred again for desktop music reaction. Canvas shadows/glow and automatic stroke-count reduction are disabled by default to keep the picture purely vectorized and stable.
 - Current audio fallback fix: keep one mixed track exported as `test.ogg`, `test.mp3`, `test.m4a`, and `test.wav`. The loader keeps OGG first, filters playable formats, starts from the first user gesture, and falls through on source failure or a short startup timeout.
+- End-of-day audio test note: Chrome and Brave desktop playback worked with the multi-format fallback procedure and the debug meters moving. `AUDIO.delayedAutoStart` is temporarily enabled so the page waits briefly after load and then tries to start music automatically; if the browser reports `NotAllowedError`, the debug text changes to `gesture needed` and the existing click/touch/key path remains the retry.
 
 ## Next Chat Starter
 

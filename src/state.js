@@ -63,6 +63,7 @@ window.OceanState = {
     sourceIndex: -1,
     sourceCandidates: [],
     startAttemptId: 0,
+    hasTriedAutoStart: false,
     bass: 0,
     treble: 0,
     volume: 0,

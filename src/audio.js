@@ -40,6 +40,8 @@ function setupAudio() {
       audio.status = "press key/click";
     }
   });
+
+  scheduleDelayedAutoStart();
 }
 
 function startAudio() {
@@ -130,8 +132,30 @@ function startCurrentAudioSource() {
       audio.isStarting = false;
       audio.isReady = false;
       audio.status = error && error.name ? error.name : "play blocked";
-      audio.sourceStatus = `blocked: ${getFileName(audio.currentSource)}`;
+      audio.sourceStatus = error && error.name === "NotAllowedError"
+        ? `gesture needed: ${getFileName(audio.currentSource)}`
+        : `blocked: ${getFileName(audio.currentSource)}`;
     });
+}
+
+function scheduleDelayedAutoStart() {
+  const { AUDIO } = window.OceanConfig;
+  const audio = window.OceanState.audio;
+
+  if (!AUDIO.delayedAutoStart || audio.hasTriedAutoStart) {
+    return;
+  }
+
+  audio.hasTriedAutoStart = true;
+  audio.status = "loading";
+  window.setTimeout(() => {
+    if (audio.isReady || audio.isStarting) {
+      return;
+    }
+
+    audio.status = "auto starting";
+    startAudio();
+  }, AUDIO.autoStartDelay);
 }
 
 function shouldTryNextAudioSource(error) {

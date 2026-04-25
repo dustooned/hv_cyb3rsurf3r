@@ -48,6 +48,8 @@ window.OceanConfig = {
       "./assets/audio/test.wav",
     ],
     sourceStartTimeout: 2200,
+    delayedAutoStart: true,
+    autoStartDelay: 1600,
     fftSize: 1024,
     smoothingTimeConstant: 0.68,
     gridBaseWaveAmount: 0.06,

@@ -118,6 +118,8 @@ Current preference:
 - Kept the prototype on the simple custom audio manager instead of adding an audio library.
 - Standardized the intended source set as OGG, MP3, M4A, and WAV versions of the same mixed track.
 - Added a short per-source startup timeout so the loader can fall through when a browser accepts a format but does not actually begin playback.
+- User reported the procedure working in Chrome and Brave desktop after the fallback file pass.
+- Temporarily enabled delayed auto-start so the browser gets a brief preload window before playback is attempted; gesture fallback remains active for browsers that block autoplay.
 
 Next diagnostic question:
 
