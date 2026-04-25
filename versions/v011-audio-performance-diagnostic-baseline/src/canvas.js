@@ -33,8 +33,6 @@ function resizeCanvas() {
     ? PERFORMANCE.maxPixelRatioSmall
     : PERFORMANCE.maxPixelRatioDesktop;
 
-  state.performance.isSmallScreen =
-    Math.min(window.innerWidth, window.innerHeight) < PERFORMANCE.mobileModeSmallSide;
   state.pixelRatio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
   state.width = window.innerWidth;
   state.height = window.innerHeight;

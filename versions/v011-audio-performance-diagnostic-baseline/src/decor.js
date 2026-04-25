@@ -2,7 +2,7 @@
 // Blue procedural side-zone layer that sits under the central play grid.
 
 function drawDecorativeGrid(time) {
-  const { VIEW, DECOR, PERFORMANCE } = window.OceanConfig;
+  const { VIEW, DECOR } = window.OceanConfig;
   const state = window.OceanState;
   const ctx = state.ctx;
   const glowScale = state.performance.glowScale;
@@ -20,18 +20,14 @@ function drawDecorativeGrid(time) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.shadowColor = "rgba(60, 190, 255, 0.85)";
-  ctx.shadowBlur = PERFORMANCE.enableCanvasShadows ? 22 * glowScale : 0;
+  ctx.shadowBlur = 22 * glowScale;
 
-  const shouldReduceStrokes = PERFORMANCE.enableMobileStrokeReduction && state.performance.mobileMode;
-  const ringStride = shouldReduceStrokes ? PERFORMANCE.mobileDecorRingStride : 1;
-  const spokeStride = shouldReduceStrokes ? PERFORMANCE.mobileDecorSpokeStride : 1;
-
-  for (let ring = 1; ring <= DECOR.rings; ring += ringStride) {
+  for (let ring = 1; ring <= DECOR.rings; ring += 1) {
     const ringT = ring / DECOR.rings;
     drawDecorRing(centerX, horizonY, frontY, ringT, time, glowScale);
   }
 
-  for (let spoke = 0; spoke < DECOR.spokes; spoke += spokeStride) {
+  for (let spoke = 0; spoke < DECOR.spokes; spoke += 1) {
     const sideT = spoke / (DECOR.spokes - 1);
     drawDecorSpoke(centerX, horizonY, frontY, sideT, time, glowScale);
   }
@@ -55,13 +51,9 @@ function clipOutsidePlayfield(centerX, horizonY, frontY, backHalfWidth, frontHal
 
 function drawDecorRing(centerX, horizonY, frontY, ringT, time, glowScale) {
   const { DECOR } = window.OceanConfig;
-  const { PERFORMANCE } = window.OceanConfig;
   const state = window.OceanState;
   const ctx = state.ctx;
-  const baseSteps = glowScale < 0.35 ? 32 : 64;
-  const steps = PERFORMANCE.enableMobileStrokeReduction && state.performance.mobileMode
-    ? Math.max(12, Math.round(baseSteps * PERFORMANCE.mobileDecorStepScale))
-    : baseSteps;
+  const steps = glowScale < 0.35 ? 32 : 64;
   const depth = ringT * ringT;
   const y = horizonY + (frontY - horizonY) * depth;
   const maxHalfWidth = state.width * (0.92 - depth * 0.12);
@@ -91,13 +83,9 @@ function drawDecorRing(centerX, horizonY, frontY, ringT, time, glowScale) {
 }
 
 function drawDecorSpoke(centerX, horizonY, frontY, sideT, time, glowScale) {
-  const { PERFORMANCE } = window.OceanConfig;
   const state = window.OceanState;
   const ctx = state.ctx;
-  const baseSteps = glowScale < 0.35 ? 20 : 36;
-  const steps = PERFORMANCE.enableMobileStrokeReduction && state.performance.mobileMode
-    ? Math.max(8, Math.round(baseSteps * PERFORMANCE.mobileDecorStepScale))
-    : baseSteps;
+  const steps = glowScale < 0.35 ? 20 : 36;
   const side = sideT * 2 - 1;
   const wobble = Math.sin(time * 0.001 + side * Math.PI * 4) * 0.06;
 

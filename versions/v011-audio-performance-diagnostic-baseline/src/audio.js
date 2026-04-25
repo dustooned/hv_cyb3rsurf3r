@@ -11,27 +11,22 @@ function setupAudio() {
 
   audio.element = new Audio();
   audio.element.loop = true;
-  audio.element.preload = "auto";
-  audio.element.playsInline = true;
-  audio.sourceCandidates = getSupportedAudioSources(audio.element, AUDIO.sources);
-  audio.sourceStatus = audio.sourceCandidates.length > 0
-    ? `ready: ${getFileName(audio.sourceCandidates[0].src)}`
-    : "no playable source";
-  selectAudioSource();
+  audio.element.preload = "metadata";
+
+  for (let i = 0; i < AUDIO.sources.length; i += 1) {
+    const source = document.createElement("source");
+    const src = AUDIO.sources[i];
+
+    source.src = src;
+    source.type = getAudioMimeType(src);
+    audio.element.appendChild(source);
+  }
 
   audio.element.addEventListener("error", () => {
+    audio.isMissing = true;
     audio.isReady = false;
     audio.hasError = true;
-    audio.status = "source error";
-    if (audio.hasStarted && tryNextAudioSource()) {
-      audio.status = "starting";
-      startCurrentAudioSource();
-      return;
-    }
-
-    audio.sourceStatus = audio.currentSource
-      ? `failed: ${getFileName(audio.currentSource)}`
-      : "source failed";
+    audio.status = "audio missing";
   });
 
   audio.element.addEventListener("canplay", () => {
@@ -49,18 +44,10 @@ function startAudio() {
     return;
   }
 
-  if (!selectAudioSource()) {
-    audio.isMissing = true;
-    audio.hasError = true;
-    audio.status = "audio missing";
-    return;
-  }
-
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
   if (!AudioContextClass) {
     audio.hasError = true;
-    audio.status = "no AudioContext";
     return;
   }
 
@@ -77,14 +64,7 @@ function startAudio() {
   }
 
   audio.status = "starting";
-  audio.sourceStatus = `trying: ${getFileName(audio.currentSource)}`;
   audio.hasError = false;
-
-  startCurrentAudioSource();
-}
-
-function startCurrentAudioSource() {
-  const audio = window.OceanState.audio;
 
   audio.context.resume()
     .then(() => {
@@ -94,19 +74,11 @@ function startCurrentAudioSource() {
     .then(() => {
       audio.isReady = true;
       audio.status = "playing";
-      audio.sourceStatus = `playing: ${getFileName(audio.currentSource)}`;
     })
     .catch((error) => {
-      if (tryNextAudioSource()) {
-        audio.status = "starting";
-        startCurrentAudioSource();
-        return;
-      }
-
       audio.hasError = true;
       audio.isReady = false;
       audio.status = error && error.name ? error.name : "play blocked";
-      audio.sourceStatus = `blocked: ${getFileName(audio.currentSource)}`;
     });
 }
 
@@ -164,14 +136,6 @@ function getBandAverage(startBin, endBin) {
 }
 
 function getAudioMimeType(src) {
-  if (src.endsWith(".mp3")) {
-    return "audio/mpeg";
-  }
-
-  if (src.endsWith(".m4a")) {
-    return "audio/mp4";
-  }
-
   if (src.endsWith(".ogg")) {
     return "audio/ogg";
   }
@@ -181,70 +145,6 @@ function getAudioMimeType(src) {
   }
 
   return "";
-}
-
-function getSupportedAudioSources(element, sources) {
-  return sources
-    .map((src) => ({
-      src,
-      type: getAudioMimeType(src),
-    }))
-    .filter((source) => {
-      if (!source.type || !element.canPlayType) {
-        return true;
-      }
-
-      return element.canPlayType(source.type) !== "";
-    });
-}
-
-function selectAudioSource() {
-  const audio = window.OceanState.audio;
-
-  if (audio.currentSource) {
-    return true;
-  }
-
-  if (!audio.sourceCandidates || audio.sourceCandidates.length === 0) {
-    audio.sourceStatus = "no supported source";
-    return false;
-  }
-
-  const candidate = audio.sourceCandidates[0];
-
-  audio.sourceIndex = 0;
-  audio.currentSource = candidate.src;
-  audio.currentSourceType = candidate.type;
-  audio.element.src = candidate.src;
-  audio.element.load();
-  return true;
-}
-
-function tryNextAudioSource() {
-  const audio = window.OceanState.audio;
-  const nextIndex = audio.sourceIndex + 1;
-
-  if (!audio.sourceCandidates || nextIndex >= audio.sourceCandidates.length) {
-    return false;
-  }
-
-  const candidate = audio.sourceCandidates[nextIndex];
-
-  audio.sourceIndex = nextIndex;
-  audio.currentSource = candidate.src;
-  audio.currentSourceType = candidate.type;
-  audio.sourceStatus = `trying: ${getFileName(candidate.src)}`;
-  audio.element.src = candidate.src;
-  audio.element.load();
-  return true;
-}
-
-function getFileName(src) {
-  if (!src) {
-    return "none";
-  }
-
-  return src.split("/").pop();
 }
 
 function drawAudioDebug() {
@@ -261,29 +161,23 @@ function drawAudioDebug() {
   const perf = state.performance;
   const left = 14;
   const top = 14;
-  const width = 194;
+  const width = 168;
   const rowHeight = 10;
 
   ctx.save();
   ctx.font = "11px Arial, Helvetica, sans-serif";
   ctx.textBaseline = "top";
   ctx.fillStyle = "rgba(0, 0, 0, 0.48)";
-  ctx.fillRect(left - 8, top - 8, width + 16, PERFORMANCE.showFrameRate ? 96 : 80);
+  ctx.fillRect(left - 8, top - 8, width + 16, PERFORMANCE.showFrameRate ? 82 : 66);
   ctx.fillStyle = audio.isReady ? "rgba(170, 255, 220, 0.95)" : "rgba(255, 230, 120, 0.95)";
   ctx.fillText(`audio: ${audio.status}`, left, top);
-  ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
-  ctx.fillText(`source: ${audio.sourceStatus}`, left, top + 14);
-  drawAudioMeter(ctx, "bass", audio.bass, left, top + 32, width, rowHeight, "rgba(70, 255, 175, 0.88)");
-  drawAudioMeter(ctx, "treble", audio.treble, left, top + 46, width, rowHeight, "rgba(120, 210, 255, 0.88)");
-  drawAudioMeter(ctx, "volume", audio.volume, left, top + 60, width, rowHeight, "rgba(255, 245, 125, 0.88)");
+  drawAudioMeter(ctx, "bass", audio.bass, left, top + 18, width, rowHeight, "rgba(70, 255, 175, 0.88)");
+  drawAudioMeter(ctx, "treble", audio.treble, left, top + 32, width, rowHeight, "rgba(120, 210, 255, 0.88)");
+  drawAudioMeter(ctx, "volume", audio.volume, left, top + 46, width, rowHeight, "rgba(255, 245, 125, 0.88)");
 
   if (PERFORMANCE.showFrameRate) {
     ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
-    ctx.fillText(
-      `fps: ${Math.round(perf.fps)} glow: ${perf.glowScale.toFixed(2)} ${perf.renderMode}`,
-      left,
-      top + 76,
-    );
+    ctx.fillText(`fps: ${Math.round(perf.fps)} glow: ${perf.glowScale.toFixed(2)}`, left, top + 62);
   }
   ctx.restore();
 }

@@ -21,9 +21,9 @@ Current features:
 - Fast retargetable arcade timing: 38ms lane switches, 45ms hold pulses, ease-out motion, and mid-switch direction correction.
 - Readable boost and slow terrain zones color the main grid and change forward ocean/world speed.
 - Yellow timing targets grant a short high-speed boost when lane alignment and Space timing are correct.
-- Optional local audio playback drives visual-only grid, terrain, and wave reactivity. The current source order is `test.ogg`, `test.mp3`, `test.m4a`, then `test.wav`, so desktop keeps the real music track while mobile can fall through to MP3/M4A/WAV.
-- Audio/FPS debug readout shows playback status, attempted/playing source, bass/treble/volume, FPS, adaptive glow scale, and vector/mobile render mode.
-- Performance protection caps Canvas pixel ratio and keeps expensive Canvas shadow/glow effects disabled by default. Mobile stroke-count reduction remains available behind a config flag, but full vector line density is the default.
+- Optional `assets/audio/test.ogg` playback drives visual-only grid, terrain, and wave reactivity. `test.wav` is a local fallback, but mobile Safari/iPad browsers likely need an MP3/M4A/AAC source.
+- Audio/FPS debug readout shows playback status, bass/treble/volume, FPS, and adaptive glow scale.
+- Performance protection caps Canvas pixel ratio and reduces glow/decor cost when frame time rises.
 
 ## Optional Vite Setup
 
@@ -68,7 +68,6 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `versions/v009-audio-reactive-terrain-baseline` preserves the current audio-reactive terrain baseline before broadening audio response across the full main grid.
 - `versions/v010-centered-surfboard-audio-grid-baseline` preserves the current centered-surfboard and full-grid audio response baseline before the next adjustment pass.
 - `versions/v011-audio-performance-diagnostic-baseline` preserves the current audio-start and performance diagnostic pass before deeper mobile/iPad fixes.
-- `versions/v012-pure-vector-render-safety` preserves the current corrected pure-vector render baseline with OGG-first audio, mobile fallbacks, and shadow/glow/stroke-reduction bottlenecks disabled by default.
 
 ## Main Tuning Points
 
@@ -83,7 +82,7 @@ Edit `src/config.js` first when tuning behavior.
 - `TERRAIN.patches`: readable abstract terrain definitions.
 - `TIMING.*`: yellow timing target size, hit window, boost multiplier, cooldown, and respawn pacing.
 - `AUDIO.*`: test audio sources, analyzer resolution, smoothing, wave response, shimmer, and glow intensity.
-- `PERFORMANCE.*`: pixel-ratio caps, shadow/glow toggles, optional mobile stroke reduction, and FPS/debug readout controls.
+- `PERFORMANCE.*`: pixel-ratio caps, adaptive glow scaling, and FPS/debug readout controls.
 - `VIEW.*`: horizon, front edge, grid width, and wave lift.
 - `DECOR.*`: blue decorative layer density and motion.
 - `PLAYER.laneMoveDuration`: visual time to switch one lane.
@@ -108,16 +107,16 @@ Current rules:
 
 ## Audio Reactivity
 
-The project includes a small generated mobile-safe test WAV at:
+Place the desktop test track at:
 
 ```text
-assets/audio/test.wav
+assets/audio/test.ogg
 ```
 
-You can also place higher quality tracks at `assets/audio/test.mp3`, `assets/audio/test.m4a`, or `assets/audio/test.ogg`. The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, vector line color/width, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
+The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, line glow, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
 
-Current mobile audio diagnostic behavior as of April 25, 2026:
+Known audio issue as of April 25, 2026:
 
-- First pointer, touch, mouse, click, or key gesture calls audio start directly.
-- The debug readout reports the source being tried or played, for example `source: playing: test.ogg` or `source: playing: test.wav`.
-- If iPad/Chrome/Brave still block playback, the next thing to check is whether the gesture reached `audio: starting` or remained before source selection.
+- Desktop Chromium can start after a click or key press in the in-app browser.
+- iPad/mobile browsers may not play `test.ogg`; iOS Safari documents support for AAC, MP3, AIF, and WAV, not OGG.
+- Next fix should add a mobile-safe `test.mp3` or `test.m4a` source and improve source-specific debug status.

@@ -33,7 +33,7 @@ What is working:
 - Boost and slow terrain now have separate color and shape language.
 - Forward ocean/world speed now changes from terrain sampling instead of lane-change speed.
 - The surfboard now feels more attached to the active rail point because it is centered on the lane dot and follows the projected grid angle.
-- The audio/FPS debug readout is useful for separating "not playing" from "wrong source" from "not reacting" from "rendering too slowly."
+- The audio/FPS debug readout is useful for separating "not playing" from "not reacting" from "rendering too slowly."
 
 What needs more evaluation:
 
@@ -45,7 +45,7 @@ What needs more evaluation:
 - Whether terrain patch size and speed multipliers are readable during normal lane movement.
 - Whether full-grid audio response should be more line-glow-driven and less vertex-height-driven.
 - Whether the audio debug readout should stay as a tuning overlay or become hidden after diagnostics.
-- Whether the first mobile performance-mode stride values reduce iPad stroke/path cost enough without losing too much grid readability.
+- Whether iPad/mobile performance requires reducing grid/decor stroke count more aggressively.
 
 ## User Evaluation Progress
 
@@ -98,20 +98,6 @@ Current preference:
 - Verified that the in-app Chromium browser can show `audio: playing` and moving meters after input, but user reports Chrome/Brave and iPad/mobile still have unreliable sound initiation.
 - Identified likely iPad/mobile issue: current preferred source is `test.ogg`, while iOS Safari-family browsers generally need MP3/M4A/AAC/WAV. The folder currently has `test.ogg`, not `test.wav`.
 - Identified likely FPS issue: when `glowScale` bottoms out and FPS is still low, the bottleneck is probably total Canvas stroke/path count rather than only glow blur.
-
-### 2026-04-25 - Mobile Audio And Stroke-Count Pass
-
-- Added a checked-in generated `assets/audio/test.wav` so mobile/iPad browsers have a safer local source than OGG.
-- Changed audio source order to WAV, MP3, M4A, then OGG, and added source-specific debug status.
-- Kept first pointer/touch/click/key audio start direct through `OceanAudio.startAudio()`.
-- Added mobile render mode diagnostics and reduced grid/decor stroke/path count through stride and path-step settings.
-
-### 2026-04-25 - Pure Vector Safety Correction
-
-- Reverted the default audio priority back to OGG-first so the desktop music track drives visible reaction again.
-- Kept MP3/M4A/WAV as fallback sources, with explicit source fallback when a selected file fails.
-- Disabled Canvas shadow/glow effects by default through `PERFORMANCE.enableCanvasShadows` and `PERFORMANCE.enableAudioGlow`.
-- Disabled automatic mobile stroke-count reduction by default so the grid keeps full vector line density and avoids flicker/quality dips.
 
 Next diagnostic question:
 

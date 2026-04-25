@@ -7,3 +7,4 @@ dist/
 Thumbs.db
 assets/audio/*.wav
 assets/audio/*.ogg
+!assets/audio/test.wav

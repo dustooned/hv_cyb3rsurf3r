@@ -68,7 +68,7 @@ function drawTiming(time) {
 }
 
 function drawTimingGate(time) {
-  const { TIMING, PERFORMANCE } = window.OceanConfig;
+  const { TIMING } = window.OceanConfig;
   const state = window.OceanState;
   const timing = state.timing;
   const ctx = state.ctx;
@@ -90,9 +90,7 @@ function drawTimingGate(time) {
 
   ctx.save();
   ctx.shadowColor = gateColor;
-  ctx.shadowBlur = PERFORMANCE.enableCanvasShadows
-    ? feedbackActive || isBoosting ? 22 : 12 + pulse * 8
-    : 0;
+  ctx.shadowBlur = feedbackActive || isBoosting ? 22 : 12 + pulse * 8;
   ctx.strokeStyle = gateColor;
   ctx.lineWidth = feedbackActive || isBoosting ? 3 : 2;
   ctx.beginPath();
@@ -110,7 +108,7 @@ function drawTimingGate(time) {
 }
 
 function drawTimingTarget(time) {
-  const { TIMING, PERFORMANCE } = window.OceanConfig;
+  const { TIMING } = window.OceanConfig;
   const timing = window.OceanState.timing;
   const ctx = window.OceanState.ctx;
   const halfLane = TIMING.targetLaneRadius;
@@ -126,7 +124,7 @@ function drawTimingTarget(time) {
 
   ctx.save();
   ctx.shadowColor = "rgba(255, 230, 45, 0.95)";
-  ctx.shadowBlur = PERFORMANCE.enableCanvasShadows ? glow : 0;
+  ctx.shadowBlur = glow;
   ctx.fillStyle = `rgba(255, 214, 45, ${0.16 + alignmentPulse * 0.18})`;
   ctx.strokeStyle = `rgba(255, 245, 125, ${0.78 + alignmentPulse * 0.22})`;
   ctx.lineWidth = 2 + alignmentPulse * 1.4;

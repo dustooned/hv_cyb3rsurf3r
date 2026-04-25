@@ -28,9 +28,6 @@ window.OceanState = {
     frameMs: 16.7,
     fps: 60,
     glowScale: 1,
-    isSmallScreen: false,
-    mobileMode: false,
-    renderMode: "full",
   },
 
   timing: {
@@ -56,11 +53,6 @@ window.OceanState = {
     isMissing: false,
     hasError: false,
     status: "waiting",
-    sourceStatus: "no source tried",
-    currentSource: "",
-    currentSourceType: "",
-    sourceIndex: -1,
-    sourceCandidates: [],
     bass: 0,
     treble: 0,
     volume: 0,

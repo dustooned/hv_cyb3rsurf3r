@@ -42,8 +42,6 @@ window.OceanConfig = {
     enabled: true,
     sources: [
       "./assets/audio/test.ogg",
-      "./assets/audio/test.mp3",
-      "./assets/audio/test.m4a",
       "./assets/audio/test.wav",
     ],
     fftSize: 1024,
@@ -66,19 +64,8 @@ window.OceanConfig = {
   },
 
   PERFORMANCE: {
-    enableCanvasShadows: false,
-    enableAudioGlow: false,
-    enableMobileStrokeReduction: false,
     maxPixelRatioDesktop: 1,
     maxPixelRatioSmall: 1,
-    mobileModeSmallSide: 900,
-    mobileModeFrameMs: 24,
-    fullModeRecoverFrameMs: 17,
-    mobileGridRowStride: 2,
-    mobileGridColumnStride: 2,
-    mobileDecorRingStride: 2,
-    mobileDecorSpokeStride: 2,
-    mobileDecorStepScale: 0.55,
     targetFrameMs: 18,
     slowFrameMs: 28,
     glowRecoverRate: 0.018,

@@ -39,7 +39,6 @@ function updatePerformance(time) {
   perf.lastFrameTime = time;
   perf.frameMs += (frameMs - perf.frameMs) * 0.08;
   perf.fps = 1000 / perf.frameMs;
-  updateRenderMode(perf, PERFORMANCE);
 
   if (perf.frameMs > PERFORMANCE.slowFrameMs) {
     perf.glowScale = Math.max(
@@ -52,18 +51,6 @@ function updatePerformance(time) {
   if (perf.frameMs < PERFORMANCE.targetFrameMs) {
     perf.glowScale = Math.min(1, perf.glowScale + PERFORMANCE.glowRecoverRate);
   }
-}
-
-function updateRenderMode(perf, PERFORMANCE) {
-  if (perf.isSmallScreen || perf.frameMs > PERFORMANCE.mobileModeFrameMs) {
-    perf.mobileMode = true;
-  } else if (perf.frameMs < PERFORMANCE.fullModeRecoverFrameMs) {
-    perf.mobileMode = false;
-  }
-
-  perf.renderMode = PERFORMANCE.enableMobileStrokeReduction && perf.mobileMode
-    ? "mobile"
-    : "vector";
 }
 
 startPrototype();

@@ -56,7 +56,7 @@ function projectGrid() {
 }
 
 function drawGrid() {
-  const { GRID, PERFORMANCE } = window.OceanConfig;
+  const { GRID } = window.OceanConfig;
   const state = window.OceanState;
   const ctx = state.ctx;
   const glowScale = state.performance.glowScale;
@@ -64,7 +64,7 @@ function drawGrid() {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.shadowColor = "rgba(60, 255, 220, 0.7)";
-  ctx.shadowBlur = PERFORMANCE.enableCanvasShadows ? 8 * glowScale : 0;
+  ctx.shadowBlur = 8 * glowScale;
 
   const rowsByDepth = [...state.vertices].sort((a, b) => a[0].depth - b[0].depth);
 
@@ -74,48 +74,20 @@ function drawGrid() {
     for (let col = 0; col < GRID.cols; col += 1) {
       const vertex = rowVertices[col];
 
-      if (col < GRID.cols - 1 && shouldDrawHorizontalLine(rowVertices[0], col)) {
+      if (col < GRID.cols - 1) {
         drawLine(vertex, rowVertices[col + 1]);
       }
 
-      if (row < rowsByDepth.length - 1 && shouldDrawVerticalLine(vertex)) {
+      if (row < rowsByDepth.length - 1) {
         drawLine(vertex, rowsByDepth[row + 1][col]);
       }
     }
   }
 }
 
-function shouldDrawHorizontalLine(rowStartVertex, col) {
-  const { PERFORMANCE } = window.OceanConfig;
-  const perf = window.OceanState.performance;
-
-  if (!PERFORMANCE.enableMobileStrokeReduction || !perf.mobileMode) {
-    return true;
-  }
-
-  const rowStride = Math.max(1, PERFORMANCE.mobileGridRowStride);
-  const colStride = Math.max(1, PERFORMANCE.mobileGridColumnStride);
-
-  return rowStartVertex.row % rowStride === 0 && col % colStride === 0;
-}
-
-function shouldDrawVerticalLine(vertex) {
-  const { PERFORMANCE } = window.OceanConfig;
-  const perf = window.OceanState.performance;
-
-  if (!PERFORMANCE.enableMobileStrokeReduction || !perf.mobileMode) {
-    return true;
-  }
-
-  const colStride = Math.max(1, PERFORMANCE.mobileGridColumnStride);
-
-  return vertex.col % colStride === 0;
-}
-
 function drawLine(a, b) {
   const ctx = window.OceanState.ctx;
   const performance = window.OceanState.performance;
-  const performanceConfig = window.OceanConfig.PERFORMANCE;
   const audio = window.OceanState.audio;
   const audioConfig = window.OceanConfig.AUDIO;
   const glowScale = performance.glowScale;
@@ -138,15 +110,12 @@ function drawLine(a, b) {
     return;
   } else {
     ctx.shadowColor = "rgba(60, 255, 220, 0.7)";
-    ctx.shadowBlur = performanceConfig.enableCanvasShadows
-      ? (8 + audio.volume * 10 + gridPulse * audioConfig.gridPulseGlowAmount) * glowScale
-      : 0;
+    ctx.shadowBlur = (8 + audio.volume * 10 + gridPulse * audioConfig.gridPulseGlowAmount) * glowScale;
     ctx.strokeStyle =
       lineEnergy > whiteThreshold
         ? `rgba(240, 255, 255, ${alpha})`
         : `rgba(70, 255, 210, ${alpha})`;
-    ctx.lineWidth = (lineEnergy > whiteThreshold ? 2 : 1) +
-      (performanceConfig.enableAudioGlow ? gridPulse * audioConfig.gridPulseWidthAmount * glowScale : 0);
+    ctx.lineWidth = (lineEnergy > whiteThreshold ? 2 : 1) + gridPulse * audioConfig.gridPulseWidthAmount * glowScale;
   }
 
   ctx.beginPath();
@@ -158,35 +127,26 @@ function drawLine(a, b) {
 function strokeTerrainLine(a, b, terrainType, glowColor, coreColor) {
   const ctx = window.OceanState.ctx;
   const performance = window.OceanState.performance;
-  const performanceConfig = window.OceanConfig.PERFORMANCE;
   const audio = window.OceanState.audio;
   const audioConfig = window.OceanConfig.AUDIO;
   const glowScale = performance.glowScale;
   const terrainPulse = terrainType === "boost"
     ? Math.max(audio.bass, audio.volume)
     : Math.max(audio.treble, audio.volume);
-  const glowBlur = performanceConfig.enableCanvasShadows
-    ? (16 + terrainPulse * audioConfig.terrainGlowAmount) * glowScale
-    : 0;
-  const glowWidth = performanceConfig.enableAudioGlow
-    ? 3 + (2 + terrainPulse * audioConfig.terrainWidthAmount) * glowScale
-    : 2.6;
+  const glowBlur = (16 + terrainPulse * audioConfig.terrainGlowAmount) * glowScale;
+  const glowWidth = 3 + (2 + terrainPulse * audioConfig.terrainWidthAmount) * glowScale;
   const coreWidth = 2.4 + terrainPulse * audioConfig.terrainWidthAmount * 0.35;
 
   ctx.shadowColor = glowColor;
   ctx.shadowBlur = glowBlur;
   ctx.strokeStyle = glowColor;
   ctx.lineWidth = glowWidth;
-  if (performanceConfig.enableAudioGlow) {
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.stroke();
-  }
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
 
-  ctx.shadowBlur = performanceConfig.enableCanvasShadows
-    ? (10 + terrainPulse * audioConfig.terrainGlowAmount * 0.45) * glowScale
-    : 0;
+  ctx.shadowBlur = (10 + terrainPulse * audioConfig.terrainGlowAmount * 0.45) * glowScale;
   ctx.strokeStyle = coreColor;
   ctx.lineWidth = coreWidth;
   ctx.beginPath();

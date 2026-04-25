@@ -29,9 +29,9 @@ No npm install is required for the current browser path.
 - Boost and slow terrain zones rendered as colored main-grid lines in the lofi active version.
 - Terrain sampling that changes forward ocean/world speed without adding scoring, collision, timer, or destination logic.
 - Yellow timing targets that grant a short high-speed boost when the surfer is lane-aligned and Space is pressed at the rail gate.
-- Optional local audio analysis that drives visual-only wave height, terrain pulse, shimmer, and vector line response. The active source order starts with `assets/audio/test.ogg`, then allows `test.mp3`, `test.m4a`, and checked-in `test.wav`.
-- Audio/FPS debug readout showing playback status, source status, bass/treble/volume, FPS, adaptive glow scale, and vector/mobile render mode.
-- Performance safeguards that cap Canvas pixel ratio and keep expensive Canvas shadows/glow disabled by default. Mobile stroke-count reduction is still available behind a config flag, but full vector line density is the default.
+- Optional `assets/audio/test.ogg` analysis that drives visual-only wave height, terrain pulse, shimmer, and grid glow. `test.wav` remains a local fallback, but iPad/mobile browsers likely need MP3/M4A/AAC.
+- Audio/FPS debug readout showing playback status, bass/treble/volume, FPS, and adaptive glow scale.
+- Performance safeguards that cap Canvas pixel ratio and reduce glow/decor cost when slower browsers struggle.
 
 ## Active Controls
 
@@ -56,7 +56,7 @@ The root `src/` folder is now the active source of truth:
 - `config.js`: tuning values.
 - `state.js`: runtime state.
 - `canvas.js`: Canvas setup, resize, and background.
-- `audio.js`: direct first-gesture test-track loading, source-specific debug status, Web Audio frequency analysis, and normalized bass/treble/volume values.
+- `audio.js`: optional OGG-first test-track loading, Web Audio frequency analysis, and normalized bass/treble/volume values.
 - `grid.js`: grid creation, projection, and drawing.
 - `wave.js`: procedural row depth and wave height.
 - `decor.js`: blue decorative side-zone rendering.
@@ -81,7 +81,6 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 - `v009-audio-reactive-terrain-baseline`: current checkpoint with yellow timing rail, OGG-first audio analysis, terrain pulse, wave shimmer, and white grid glow reactivity.
 - `v010-centered-surfboard-audio-grid-baseline`: current checkpoint with full-grid audio visual response, reduced automatic wave amplitude, and a surfboard centered on the projected rail dot.
 - `v011-audio-performance-diagnostic-baseline`: current checkpoint with responsive board scaling, audio-start diagnostics, FPS/glow readout, and mobile/iPad issue notes before deeper compatibility work.
-- `v012-pure-vector-render-safety`: current corrected checkpoint with OGG-first audio restored, mobile fallbacks retained, and Canvas shadows/glow/stroke-reduction bottlenecks disabled by default.
 
 ## Lessons Learned
 
@@ -93,8 +92,8 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 - Visual anchor dots on the front rail help debug lane feel and player position.
 - Committed lane switches can feel like recoil when reversing direction; retargeting from the current visual lane feels better.
 - `easeOut` makes lane correction feel faster and less sticky than the earlier ease-in-out switch.
-- OGG-first audio keeps the desktop music reaction, while MP3/M4A/WAV remain fallback options for mobile browsers.
-- The current pure-vector safety pass keeps Canvas shadows/glow disabled by default and does not skip grid/decor lines unless `PERFORMANCE.enableMobileStrokeReduction` is manually enabled.
+- OGG-first audio works in desktop Chromium-style testing, but iPad/mobile Safari-family browsers likely need MP3/M4A/AAC.
+- If FPS is slow after glow scale bottoms out, the bottleneck is probably total stroke/path count rather than only `shadowBlur`.
 
 ## Recommended Next Steps
 
@@ -106,8 +105,8 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
    - Boost terrain: bright cyan/green grid lines, increases world speed.
    - Slow terrain: purple/blue grid lines, reduces world speed.
 6. Keep terrain readable through the grid line language before adding new visual systems.
-7. Test `v012-pure-vector-render-safety` on desktop and iPad/mobile before re-enabling any shadows, glow, or stroke-count reduction.
-8. If FPS is still low in pure-vector mode, tune geometry/path complexity carefully without skipping visible grid lines by default.
+7. Add a mobile-safe audio source such as `assets/audio/test.mp3` or `assets/audio/test.m4a` and make the debug readout show which source actually loaded.
+8. Add a mobile performance mode that reduces visual stroke count, not just glow blur.
 9. Save another version snapshot before adding collision, timer, scoring, or destination logic.
 
 ## Current Terrain Prototype
@@ -135,7 +134,7 @@ Journal entry, April 25, 2026:
 - Added pointer/mouse/click/touch gesture listeners for audio start.
 - Added performance controls: Canvas pixel ratio cap, adaptive glow scale, and lower-detail decorative paths when performance drops.
 - Verified in the in-app Chromium browser that key/click can start audio and show moving meters, but user still reports Chrome/Brave and iPad/mobile startup trouble.
-- Current rendering fix: checked-in `test.wav` remains as a mobile fallback, but `test.ogg` is preferred again for desktop music reaction. Canvas shadows/glow and automatic stroke-count reduction are disabled by default to keep the picture purely vectorized and stable.
+- Current hypothesis: iPad/mobile browsers cannot use `test.ogg`; they need MP3/M4A/AAC and a direct first-gesture audio unlock path. Slow iPad FPS likely comes from total Canvas stroke/path count after glow is already reduced.
 
 ## Next Chat Starter
 
@@ -148,7 +147,7 @@ Please read README.md, HANDOFF.md, and EVALUATION.md first. The current app runs
 
 Current direction: lofi Tempest-like vector ocean, lane-rail surfboard controls, front anchor dots, ease-out retarget movement, centered responsive surfboard art, full-grid audio-reactive visuals, and readable boost/slow terrain shown as colored grid lines that modulate forward world speed.
 
-Current checkpoint: v012-pure-vector-render-safety.
+Current checkpoint: v011-audio-performance-diagnostic-baseline.
 
-Next task: test the pure-vector safety baseline first. Keep `PERFORMANCE.enableCanvasShadows`, `PERFORMANCE.enableAudioGlow`, and `PERFORMANCE.enableMobileStrokeReduction` false unless deliberately experimenting. Preserve OGG-first music reaction with MP3/M4A/WAV fallback. If more performance work is needed, tune vector geometry/path complexity without default line skipping, and do not change terrain generation, yellow target timing, scoring, collision, timer, or destination logic yet.
+Next task: fix mobile/iPad audio and FPS issues. Start by adding a mobile-safe audio source such as `assets/audio/test.mp3` or `assets/audio/test.m4a`, improving source-specific debug status, and making the first touch/click audio unlock as direct as possible. Then add a mobile performance mode that reduces Canvas stroke/path count, not just glow blur. Do not change terrain generation, yellow target timing, scoring, collision, timer, or destination logic yet.
 ```

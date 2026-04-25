@@ -101,7 +101,7 @@ function clampPlayerToView() {
 }
 
 function drawPlayer(time) {
-  const { PLAYER, PERFORMANCE } = window.OceanConfig;
+  const { PLAYER } = window.OceanConfig;
   const state = window.OceanState;
   const ctx = state.ctx;
   const boardPosition = getPlayerBoardPosition();
@@ -125,7 +125,7 @@ function drawPlayer(time) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.shadowColor = "rgba(255, 255, 255, 0.85)";
-  ctx.shadowBlur = PERFORMANCE.enableCanvasShadows ? 14 : 0;
+  ctx.shadowBlur = 14;
 
   // Surfboard outline: a narrow vector capsule with a pointed nose.
   ctx.strokeStyle = "rgba(245, 255, 255, 0.95)";
@@ -217,13 +217,13 @@ function getPlayerRailAngle() {
 }
 
 function drawControlRail(time) {
-  const { PLAYER, PERFORMANCE } = window.OceanConfig;
+  const { PLAYER } = window.OceanConfig;
   const ctx = window.OceanState.ctx;
   const pulse = getEasedPulse(time, PLAYER.laneDotPulseSpeed);
 
   ctx.save();
   ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
-  ctx.shadowBlur = PERFORMANCE.enableCanvasShadows ? 8 : 0;
+  ctx.shadowBlur = 8;
 
   for (let lane = PLAYER.minLane; lane <= PLAYER.maxLane; lane += 1) {
     const point = getControlRailPoint(lane);
