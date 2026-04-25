@@ -15,6 +15,8 @@ window.OceanConfig = {
     slowMultiplier: 0.58,
     speedEase: 0.08,
     sampleDepth: 0.72,
+    // Terrain art waits until about the 3rd grid row from the horizon before drawing.
+    nearHorizonDepth: 0.17,
     edgeNoise: true,
     patches: [
       { id: "boost-a", type: "boost", laneCenter: 9, laneRadius: 3.2, start: 0.14, length: 0.2, seed: 11 },

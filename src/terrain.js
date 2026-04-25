@@ -77,15 +77,14 @@ function drawTerrain(time) {
 function drawBoostPatch(patch, time) {
   const ctx = window.OceanState.ctx;
   const { TERRAIN } = window.OceanConfig;
-  const frontDepth = patch.depthStart;
-  const backDepth = patch.depthEnd;
+  const visibleSegments = getVisibleTerrainSegments(patch);
   const centerLane = patch.laneCenter;
   const radius = patch.laneRadius;
-  const leftFront = projectTerrainPoint(centerLane - radius, frontDepth);
-  const rightFront = projectTerrainPoint(centerLane + radius, frontDepth);
-  const leftBack = projectTerrainPoint(centerLane - radius * 0.48, backDepth);
-  const rightBack = projectTerrainPoint(centerLane + radius * 0.48, backDepth);
   const pulse = (Math.sin(time * 0.006 + patch.seed) + 1) * 0.5;
+
+  if (visibleSegments.length === 0) {
+    return;
+  }
 
   ctx.save();
   ctx.shadowColor = "rgba(40, 255, 180, 0.9)";
@@ -93,23 +92,32 @@ function drawBoostPatch(patch, time) {
   ctx.fillStyle = "rgba(40, 255, 175, 0.16)";
   ctx.strokeStyle = "rgba(95, 255, 205, 0.9)";
   ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(leftFront.x, leftFront.y);
-  ctx.lineTo(rightFront.x, rightFront.y);
-  ctx.lineTo(rightBack.x, rightBack.y);
-  ctx.lineTo(leftBack.x, leftBack.y);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
 
-  for (let i = 0; i < 3; i += 1) {
-    const t = (i + 1) / 4;
-    const depth = lerpWrappedDepth(frontDepth, backDepth, t);
-    drawBoostChevron(centerLane, radius * (0.72 - i * 0.08), depth);
+  for (let segmentIndex = 0; segmentIndex < visibleSegments.length; segmentIndex += 1) {
+    const segment = visibleSegments[segmentIndex];
+    const leftFront = projectTerrainPoint(centerLane - radius, segment.start);
+    const rightFront = projectTerrainPoint(centerLane + radius, segment.start);
+    const leftBack = projectTerrainPoint(centerLane - radius * 0.48, segment.end);
+    const rightBack = projectTerrainPoint(centerLane + radius * 0.48, segment.end);
+
+    ctx.beginPath();
+    ctx.moveTo(leftFront.x, leftFront.y);
+    ctx.lineTo(rightFront.x, rightFront.y);
+    ctx.lineTo(rightBack.x, rightBack.y);
+    ctx.lineTo(leftBack.x, leftBack.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    for (let i = 0; i < 3; i += 1) {
+      const t = (i + 1) / 4;
+      const depth = segment.start + (segment.end - segment.start) * t;
+      drawBoostChevron(centerLane, radius * (0.72 - i * 0.08), depth);
+    }
   }
 
   if (TERRAIN.edgeNoise) {
-    drawPatchEdgeNoise(patch, "rgba(140, 255, 220, 0.5)");
+    drawPatchEdgeNoise(patch, visibleSegments, "rgba(140, 255, 220, 0.5)");
   }
 
   ctx.restore();
@@ -133,9 +141,15 @@ function drawBoostChevron(centerLane, radius, depth) {
 function drawSlowPatch(patch, time) {
   const ctx = window.OceanState.ctx;
   const { TERRAIN } = window.OceanConfig;
+
+  if (patch.depthCenter < TERRAIN.nearHorizonDepth) {
+    return;
+  }
+
   const center = projectTerrainPoint(patch.laneCenter, patch.depthCenter);
   const laneEdge = projectTerrainPoint(patch.laneCenter + patch.laneRadius, patch.depthCenter);
-  const depthEdge = projectTerrainPoint(patch.laneCenter, patch.depthCenter + patch.length * 0.5);
+  const depthEdgeDepth = Math.min(0.98, patch.depthCenter + patch.length * 0.5);
+  const depthEdge = projectTerrainPoint(patch.laneCenter, depthEdgeDepth);
   const radiusX = Math.max(8, Math.abs(laneEdge.x - center.x));
   const radiusY = Math.max(8, Math.abs(depthEdge.y - center.y));
   const wobble = Math.sin(time * 0.003 + patch.seed) * 0.08;
@@ -177,37 +191,42 @@ function drawSlowPatch(patch, time) {
   ctx.restore();
 }
 
-function drawPatchEdgeNoise(patch, color) {
+function drawPatchEdgeNoise(patch, visibleSegments, color) {
   const ctx = window.OceanState.ctx;
   const steps = 9;
 
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
-  ctx.beginPath();
 
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i / steps;
-    const laneOffset = Math.sin(t * Math.PI * 6 + patch.seed) * 0.35;
-    const depth = lerpWrappedDepth(patch.depthStart, patch.depthEnd, t);
-    const point = projectTerrainPoint(patch.laneCenter - patch.laneRadius + laneOffset, depth);
+  for (let segmentIndex = 0; segmentIndex < visibleSegments.length; segmentIndex += 1) {
+    const segment = visibleSegments[segmentIndex];
 
-    if (i === 0) {
-      ctx.moveTo(point.x, point.y);
-    } else {
+    ctx.beginPath();
+
+    for (let i = 0; i <= steps; i += 1) {
+      const t = i / steps;
+      const laneOffset = Math.sin(t * Math.PI * 6 + patch.seed) * 0.35;
+      const depth = segment.start + (segment.end - segment.start) * t;
+      const point = projectTerrainPoint(patch.laneCenter - patch.laneRadius + laneOffset, depth);
+
+      if (i === 0) {
+        ctx.moveTo(point.x, point.y);
+      } else {
+        ctx.lineTo(point.x, point.y);
+      }
+    }
+
+    for (let i = steps; i >= 0; i -= 1) {
+      const t = i / steps;
+      const laneOffset = Math.cos(t * Math.PI * 5 + patch.seed) * 0.35;
+      const depth = segment.start + (segment.end - segment.start) * t;
+      const point = projectTerrainPoint(patch.laneCenter + patch.laneRadius + laneOffset, depth);
       ctx.lineTo(point.x, point.y);
     }
-  }
 
-  for (let i = steps; i >= 0; i -= 1) {
-    const t = i / steps;
-    const laneOffset = Math.cos(t * Math.PI * 5 + patch.seed) * 0.35;
-    const depth = lerpWrappedDepth(patch.depthStart, patch.depthEnd, t);
-    const point = projectTerrainPoint(patch.laneCenter + patch.laneRadius + laneOffset, depth);
-    ctx.lineTo(point.x, point.y);
+    ctx.closePath();
+    ctx.stroke();
   }
-
-  ctx.closePath();
-  ctx.stroke();
 }
 
 function drawTerrainProbe() {
@@ -278,14 +297,36 @@ function projectTerrainPoint(lane, depth) {
   };
 }
 
-function lerpWrappedDepth(a, b, t) {
-  let end = b;
+function getVisibleTerrainSegments(patch) {
+  const { TERRAIN } = window.OceanConfig;
+  const minDepth = TERRAIN.nearHorizonDepth;
+  const segments = [];
+  const rawStart = patch.depthStart;
+  let rawEnd = patch.depthEnd;
 
-  if (end < a) {
-    end += 1;
+  if (rawEnd < rawStart) {
+    rawEnd += 1;
   }
 
-  return wrapDepth(a + (end - a) * t);
+  addVisibleSegment(segments, rawStart, rawEnd, minDepth);
+
+  if (rawEnd > 1) {
+    addVisibleSegment(segments, 0, rawEnd - 1, minDepth);
+  }
+
+  return segments;
+}
+
+function addVisibleSegment(segments, start, end, minDepth) {
+  const visibleStart = Math.max(start, minDepth);
+  const visibleEnd = Math.min(end, 1);
+
+  if (visibleEnd - visibleStart > 0.01) {
+    segments.push({
+      start: visibleStart,
+      end: visibleEnd,
+    });
+  }
 }
 
 function wrapDepth(value) {
