@@ -63,11 +63,12 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 
 Edit `src/config.js` first when tuning behavior.
 
-- `GRID.scrollSpeed`: ocean row movement speed.
 - `TERRAIN.baseWorldSpeed`: baseline forward ocean/world speed.
 - `TERRAIN.boostMultiplier`: speed multiplier while the player samples boost terrain.
 - `TERRAIN.slowMultiplier`: speed multiplier while the player samples slow terrain.
 - `TERRAIN.sampleDepth`: grid-depth line where the board reads terrain for speed.
+- `TERRAIN.nearHorizonDepth`: first depth where terrain art is allowed to appear.
+- `TERRAIN.foregroundFadeRows`: number of rows before the surfboard rail used to fade terrain out.
 - `TERRAIN.patches`: readable abstract terrain definitions.
 - `VIEW.*`: horizon, front edge, grid width, and wave lift.
 - `DECOR.*`: blue decorative layer density and motion.

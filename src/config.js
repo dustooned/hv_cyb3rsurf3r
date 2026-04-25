@@ -5,18 +5,19 @@ window.OceanConfig = {
   GRID: {
     cols: 30,
     rows: 18,
-    scrollSpeed: 0.00018,
   },
 
   TERRAIN: {
     enabled: true,
-    baseWorldSpeed: 0.00018,
+    baseWorldSpeed: 0.00012,
     boostMultiplier: 1.65,
     slowMultiplier: 0.58,
     speedEase: 0.08,
     sampleDepth: 0.72,
     // Terrain art waits until about the 3rd grid row from the horizon before drawing.
     nearHorizonDepth: 0.17,
+    // Fade terrain out across the last rows before the surfboard rail.
+    foregroundFadeRows: 2,
     edgeNoise: true,
     patches: [
       { id: "boost-a", type: "boost", laneCenter: 9, laneRadius: 3.2, start: 0.14, length: 0.2, seed: 11 },

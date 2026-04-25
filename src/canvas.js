@@ -1,20 +1,36 @@
 // CANVAS
 // Browser canvas setup, resize behavior, and background drawing.
 
+let resizeFrame = 0;
+
 function setupCanvas() {
   const state = window.OceanState;
 
   state.canvas = document.querySelector("#ocean-canvas");
   state.ctx = state.canvas.getContext("2d");
 
-  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("resize", requestCanvasResize);
   resizeCanvas();
+}
+
+function requestCanvasResize() {
+  if (resizeFrame !== 0) {
+    return;
+  }
+
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0;
+    resizeCanvas();
+  });
 }
 
 function resizeCanvas() {
   const state = window.OceanState;
 
-  state.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  const isSmallScreen = Math.min(window.innerWidth, window.innerHeight) < 760;
+  const maxPixelRatio = isSmallScreen ? 1.35 : 2;
+
+  state.pixelRatio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
   state.width = window.innerWidth;
   state.height = window.innerHeight;
 
