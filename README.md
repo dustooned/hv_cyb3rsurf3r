@@ -17,8 +17,10 @@ Current features:
 - Foreground surfboard vector shape.
 - Lane-rail movement on the front edge of the grid.
 - Tap or hold Arrow Left, Arrow Right, A, and D to move between lanes.
+- Tap Space when the yellow timing cell reaches the yellow rail gate while the surfer is in the same lane.
 - Fast retargetable arcade timing: 38ms lane switches, 45ms hold pulses, ease-out motion, and mid-switch direction correction.
 - Readable boost and slow terrain zones color the main grid and change forward ocean/world speed.
+- Yellow timing targets grant a short high-speed boost when lane alignment and Space timing are correct.
 
 ## Optional Vite Setup
 
@@ -46,7 +48,8 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `src/grid.js` creates, projects, and draws the Tempest-like ocean grid.
 - `src/wave.js` updates procedural water height and scrolling row depth.
 - `src/decor.js` draws the blue procedural side-zone decoration.
-- `src/terrain.js` owns boost/slow terrain data, rendering, and world-speed sampling.
+- `src/terrain.js` owns boost/slow terrain data and world-speed sampling.
+- `src/timing.js` owns the yellow timing target, rail gate, Space hit checks, and timing boost.
 - `src/player.js` updates and draws the foreground surfboard marker.
 - `src/input.js` listens for Arrow Left, Arrow Right, A, and D.
 - `src/main.js` owns only startup and the animation loop.
@@ -70,6 +73,7 @@ Edit `src/config.js` first when tuning behavior.
 - `TERRAIN.nearHorizonDepth`: first depth where terrain color is allowed to appear.
 - `TERRAIN.foregroundFadeRows`: number of rows before the surfboard rail used to fade terrain out.
 - `TERRAIN.patches`: readable abstract terrain definitions.
+- `TIMING.*`: yellow timing target size, hit window, boost multiplier, cooldown, and respawn pacing.
 - `VIEW.*`: horizon, front edge, grid width, and wave lift.
 - `DECOR.*`: blue decorative layer density and motion.
 - `PLAYER.laneMoveDuration`: visual time to switch one lane.
@@ -87,6 +91,7 @@ Current rules:
 
 - Boost terrain colors the grid bright cyan/green and increases forward ocean/world speed.
 - Slow terrain colors the grid purple/blue and reduces forward ocean/world speed.
+- Yellow timing cells require lane alignment plus Space timing at the rail gate for a stronger temporary boost.
 - Terrain patches are explicit data objects with type, lane center, lane radius, track start, length, and seed.
 - The wave height remains visual-only; terrain speed is tracked separately in `OceanState.world`.
 - Scoring, collision, timer, and destination UI are still intentionally deferred.

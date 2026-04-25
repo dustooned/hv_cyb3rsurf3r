@@ -23,6 +23,14 @@ function handleKeyDown(event) {
     event.preventDefault();
     setKeyState(event, true, 1);
   }
+
+  if (event.code === "Space") {
+    event.preventDefault();
+
+    if (!event.repeat) {
+      window.OceanTiming.requestTimingTap(performance.now());
+    }
+  }
 }
 
 function setKeyState(event, isPressed, direction = 0) {

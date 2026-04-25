@@ -23,6 +23,18 @@ window.OceanState = {
     visiblePatches: [],
   },
 
+  timing: {
+    targetLane: window.OceanConfig.PLAYER.startingLane,
+    targetDepth: 0,
+    targetTrackStart: 0,
+    targetActive: false,
+    nextSpawnAt: 0,
+    boostActiveUntil: 0,
+    cooldownUntil: 0,
+    feedbackType: "neutral",
+    feedbackUntil: 0,
+  },
+
   keys: {
     left: false,
     right: false,

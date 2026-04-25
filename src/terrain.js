@@ -41,8 +41,16 @@ function updateWorldSpeedFromTerrain(TERRAIN) {
     multiplier = activePatch.type === "boost" ? TERRAIN.boostMultiplier : TERRAIN.slowMultiplier;
   }
 
+  if (window.OceanTiming.isBoostActive()) {
+    multiplier = window.OceanConfig.TIMING.perfectBoostMultiplier;
+  }
+
   state.world.speedMultiplier = multiplier;
-  state.world.activeTerrainType = activePatch ? activePatch.type : "neutral";
+  state.world.activeTerrainType = window.OceanTiming.isBoostActive()
+    ? "timing-boost"
+    : activePatch
+      ? activePatch.type
+      : "neutral";
   state.world.activePatchId = activePatch ? activePatch.id : null;
   state.world.targetSpeed = TERRAIN.baseWorldSpeed * multiplier;
   state.world.currentSpeed += (state.world.targetSpeed - state.world.currentSpeed) * TERRAIN.speedEase;

@@ -28,11 +28,13 @@ No npm install is required for the current browser path.
 - Ease-out lane movement and mid-switch retargeting so quick direction reversals feel less like recoil.
 - Boost and slow terrain zones rendered as colored main-grid lines in the lofi active version.
 - Terrain sampling that changes forward ocean/world speed without adding scoring, collision, timer, or destination logic.
+- Yellow timing targets that grant a short high-speed boost when the surfer is lane-aligned and Space is pressed at the rail gate.
 
 ## Active Controls
 
 - `ArrowLeft` or `A`: move left one lane, or pulse left while held.
 - `ArrowRight` or `D`: move right one lane, or pulse right while held.
+- `Space`: trigger the yellow timing gate if the surfer is aligned with the yellow target lane.
 
 Current arcade timing in `src/config.js`:
 
@@ -55,6 +57,7 @@ The root `src/` folder is now the active source of truth:
 - `wave.js`: procedural row depth and wave height.
 - `decor.js`: blue decorative side-zone rendering.
 - `terrain.js`: terrain patch data, terrain queries, and speed sampling.
+- `timing.js`: yellow rail-gate timing target, Space hit checks, boost/cooldown state, and timing visuals.
 - `player.js`: surfboard lane movement and drawing.
 - `input.js`: keyboard state and movement requests.
 - `main.js`: startup and animation loop only.
@@ -103,6 +106,7 @@ Terrain is intentionally separate from wave height:
 - `OceanState.world.progress` is the single forward-scroll value consumed by `src/wave.js`.
 - `src/terrain.js` samples the player's current lane against visible terrain at `TERRAIN.sampleDepth`.
 - `src/grid.js` queries terrain while drawing each grid line and colors boost/slow zones directly on the main grid.
+- `src/timing.js` draws the yellow target cell and rail gate, then overrides world speed during successful timing boosts.
 - No scoring, collision, timer, destination, or failure states have been added.
 
 ## Next Chat Starter

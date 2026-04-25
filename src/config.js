@@ -26,6 +26,18 @@ window.OceanConfig = {
     ],
   },
 
+  TIMING: {
+    enabled: true,
+    targetLaneRadius: 0.5,
+    targetDepthSize: 0.075,
+    hitWindowDepth: 0.045,
+    laneWindow: 0.48,
+    perfectBoostMultiplier: 3.1,
+    boostDuration: 1100,
+    cooldownDuration: 900,
+    respawnDelay: 550,
+  },
+
   VIEW: {
     horizonY: 0.24,
     frontY: 0.9,

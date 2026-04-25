@@ -8,6 +8,7 @@ function startPrototype() {
 }
 
 function animate(time) {
+  window.OceanTiming.updateTiming(time);
   window.OceanTerrain.updateTerrain(time);
   window.OceanWave.updateWave(time);
   window.OceanGrid.projectGrid();
@@ -15,6 +16,7 @@ function animate(time) {
   window.OceanCanvas.drawBackground();
   window.OceanDecor.drawDecorativeGrid(time);
   window.OceanGrid.drawGrid();
+  window.OceanTiming.drawTiming(time);
   window.OceanPlayer.drawPlayer(time);
 
   requestAnimationFrame(animate);

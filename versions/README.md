@@ -14,3 +14,7 @@ The root project folder remains the active working copy. When a prototype state 
 - `v006-terrain-speed-prototype`: first readable boost/slow terrain classification prototype with forward world-speed modulation.
 - `v007-foreground-fade-baseline`: pre-lofi terrain-shape version with slower world speed, horizon clipping, foreground fade, and mobile canvas cleanup.
 - `v008-lofi-grid-terrain`: lofi version that reduces grid/decor density and renders boost/slow terrain as colored main-grid lines.
+
+## Active Additions After v008
+
+- Yellow timing rail prototype: Space-triggered timing target that requires lane alignment and grants a temporary high-speed boost.
