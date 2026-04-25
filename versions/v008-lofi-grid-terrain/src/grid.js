@@ -93,14 +93,12 @@ function drawLine(a, b) {
   const alpha = Math.max(0.35, Math.min(1, 0.55 + wave * 0.7 + terrain.alpha * 0.18));
 
   if (terrain.type === "boost") {
-    strokeTerrainLine(a, b, "rgba(55, 255, 180, 0.26)", `rgba(70, 255, 175, ${Math.max(alpha, 0.84)})`);
-    return;
+    ctx.strokeStyle = `rgba(70, 255, 175, ${Math.max(alpha, 0.78)})`;
+    ctx.lineWidth = 2;
   } else if (terrain.type === "slow") {
-    strokeTerrainLine(a, b, "rgba(190, 115, 255, 0.28)", `rgba(198, 145, 255, ${Math.max(alpha, 0.78)})`);
-    return;
+    ctx.strokeStyle = `rgba(170, 135, 255, ${Math.max(alpha, 0.68)})`;
+    ctx.lineWidth = 2;
   } else {
-    ctx.shadowColor = "rgba(60, 255, 220, 0.7)";
-    ctx.shadowBlur = 8;
     ctx.strokeStyle =
       wave > 0.45
         ? `rgba(240, 255, 255, ${alpha})`
@@ -108,27 +106,6 @@ function drawLine(a, b) {
     ctx.lineWidth = wave > 0.45 ? 2 : 1;
   }
 
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.stroke();
-}
-
-function strokeTerrainLine(a, b, glowColor, coreColor) {
-  const ctx = window.OceanState.ctx;
-
-  ctx.shadowColor = glowColor;
-  ctx.shadowBlur = 16;
-  ctx.strokeStyle = glowColor;
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.stroke();
-
-  ctx.shadowBlur = 10;
-  ctx.strokeStyle = coreColor;
-  ctx.lineWidth = 2.4;
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(b.x, b.y);

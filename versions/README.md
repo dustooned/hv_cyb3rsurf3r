@@ -12,3 +12,5 @@ The root project folder remains the active working copy. When a prototype state 
 - `v004-infrastructure-baseline`: stable modular baseline before the next round of lane-speed tuning and infrastructure work.
 - `v005-retarget-easeout-controls`: approved checkpoint with faster retargetable ease-out lane controls before expansion.
 - `v006-terrain-speed-prototype`: first readable boost/slow terrain classification prototype with forward world-speed modulation.
+- `v007-foreground-fade-baseline`: terrain sprite version with slower world speed, horizon clipping, foreground fade, and mobile canvas cleanup.
+- `v008-lofi-grid-terrain`: lofi version that reduces grid/decor density and renders boost/slow terrain as colored main-grid lines instead of separate sprites.

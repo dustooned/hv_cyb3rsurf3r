@@ -10,10 +10,10 @@ window.OceanConfig = {
   TERRAIN: {
     enabled: true,
     baseWorldSpeed: 0.00012,
-    boostMultiplier: 1.55,
-    slowMultiplier: 0.64,
+    boostMultiplier: 1.65,
+    slowMultiplier: 0.58,
     speedEase: 0.08,
-    sampleDepth: 0.62,
+    sampleDepth: 0.72,
     // Terrain art waits until about the 3rd grid row from the horizon before drawing.
     nearHorizonDepth: 0.17,
     // Fade terrain out across the last rows before the surfboard rail.
@@ -21,10 +21,10 @@ window.OceanConfig = {
     drawSprites: false,
     edgeNoise: false,
     patches: [
-      { id: "boost-a", type: "boost", laneCenter: 5, laneRadius: 2.8, start: 0.12, length: 0.24, seed: 11 },
-      { id: "slow-a", type: "slow", laneCenter: 13, laneRadius: 3.1, start: 0.32, length: 0.22, seed: 23 },
-      { id: "boost-b", type: "boost", laneCenter: 10, laneRadius: 2.6, start: 0.57, length: 0.21, seed: 37 },
-      { id: "slow-b", type: "slow", laneCenter: 6, laneRadius: 2.9, start: 0.78, length: 0.2, seed: 51 },
+      { id: "boost-a", type: "boost", laneCenter: 6, laneRadius: 2.2, start: 0.14, length: 0.2, seed: 11 },
+      { id: "slow-a", type: "slow", laneCenter: 13, laneRadius: 2.8, start: 0.33, length: 0.18, seed: 23 },
+      { id: "boost-b", type: "boost", laneCenter: 11, laneRadius: 2, start: 0.58, length: 0.17, seed: 37 },
+      { id: "slow-b", type: "slow", laneCenter: 5, laneRadius: 2.4, start: 0.78, length: 0.16, seed: 51 },
     ],
   },
 
@@ -37,8 +37,8 @@ window.OceanConfig = {
   },
 
   DECOR: {
-    rings: 6,
-    spokes: 7,
+    rings: 7,
+    spokes: 9,
     pulseSpeed: 0.0012,
     twistSpeed: 0.00045,
   },
@@ -58,7 +58,7 @@ window.OceanConfig = {
     halfWidth: 28,
     length: 86,
     bottomOffset: 46,
-    railRowsFromFront: 3,
+    railRowsFromFront: 2,
     showLaneTicks: true,
     laneDotBaseRadius: 2,
     laneDotActiveRadius: 3.4,

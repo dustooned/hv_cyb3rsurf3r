@@ -86,63 +86,18 @@ function drawGrid() {
 function drawLine(a, b) {
   const ctx = window.OceanState.ctx;
   const wave = Math.max(a.waveHeight, b.waveHeight);
-  const terrain = window.OceanTerrain.getTerrainVisualAt(
-    (a.col + b.col) * 0.5,
-    getLineSampleDepth(a.depth, b.depth),
-  );
-  const alpha = Math.max(0.35, Math.min(1, 0.55 + wave * 0.7 + terrain.alpha * 0.18));
+  const alpha = Math.max(0.35, Math.min(1, 0.55 + wave * 0.7));
 
-  if (terrain.type === "boost") {
-    strokeTerrainLine(a, b, "rgba(55, 255, 180, 0.26)", `rgba(70, 255, 175, ${Math.max(alpha, 0.84)})`);
-    return;
-  } else if (terrain.type === "slow") {
-    strokeTerrainLine(a, b, "rgba(190, 115, 255, 0.28)", `rgba(198, 145, 255, ${Math.max(alpha, 0.78)})`);
-    return;
-  } else {
-    ctx.shadowColor = "rgba(60, 255, 220, 0.7)";
-    ctx.shadowBlur = 8;
-    ctx.strokeStyle =
-      wave > 0.45
-        ? `rgba(240, 255, 255, ${alpha})`
-        : `rgba(70, 255, 210, ${alpha})`;
-    ctx.lineWidth = wave > 0.45 ? 2 : 1;
-  }
+  ctx.strokeStyle =
+    wave > 0.45
+      ? `rgba(240, 255, 255, ${alpha})`
+      : `rgba(70, 255, 210, ${alpha})`;
+  ctx.lineWidth = wave > 0.45 ? 2 : 1;
 
   ctx.beginPath();
   ctx.moveTo(a.x, a.y);
   ctx.lineTo(b.x, b.y);
   ctx.stroke();
-}
-
-function strokeTerrainLine(a, b, glowColor, coreColor) {
-  const ctx = window.OceanState.ctx;
-
-  ctx.shadowColor = glowColor;
-  ctx.shadowBlur = 16;
-  ctx.strokeStyle = glowColor;
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.stroke();
-
-  ctx.shadowBlur = 10;
-  ctx.strokeStyle = coreColor;
-  ctx.lineWidth = 2.4;
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.stroke();
-}
-
-function getLineSampleDepth(aDepth, bDepth) {
-  const distance = Math.abs(aDepth - bDepth);
-
-  if (distance > 0.5) {
-    return ((aDepth + bDepth + 1) * 0.5) % 1;
-  }
-
-  return (aDepth + bDepth) * 0.5;
 }
 
 window.OceanGrid = {

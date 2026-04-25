@@ -18,7 +18,7 @@ Current features:
 - Lane-rail movement on the front edge of the grid.
 - Tap or hold Arrow Left, Arrow Right, A, and D to move between lanes.
 - Fast retargetable arcade timing: 38ms lane switches, 45ms hold pulses, ease-out motion, and mid-switch direction correction.
-- Readable boost and slow terrain zones color the main grid and change forward ocean/world speed.
+- Readable boost and slow terrain patches that change forward ocean/world speed.
 
 ## Optional Vite Setup
 
@@ -67,9 +67,8 @@ Edit `src/config.js` first when tuning behavior.
 - `TERRAIN.boostMultiplier`: speed multiplier while the player samples boost terrain.
 - `TERRAIN.slowMultiplier`: speed multiplier while the player samples slow terrain.
 - `TERRAIN.sampleDepth`: grid-depth line where the board reads terrain for speed.
-- `TERRAIN.nearHorizonDepth`: first depth where terrain color is allowed to appear.
+- `TERRAIN.nearHorizonDepth`: first depth where terrain art is allowed to appear.
 - `TERRAIN.foregroundFadeRows`: number of rows before the surfboard rail used to fade terrain out.
-- `TERRAIN.drawSprites`: optional legacy terrain patch drawing. Current lofi mode keeps this off.
 - `TERRAIN.patches`: readable abstract terrain definitions.
 - `VIEW.*`: horizon, front edge, grid width, and wave lift.
 - `DECOR.*`: blue decorative layer density and motion.
@@ -86,8 +85,8 @@ The active mechanic prototype is terrain classification for forward world speed.
 
 Current rules:
 
-- Boost terrain colors the grid bright cyan/green and increases forward ocean/world speed.
-- Slow terrain colors the grid purple/blue and reduces forward ocean/world speed.
+- Boost terrain appears as bright cyan/green chevron fields and increases forward ocean/world speed.
+- Slow terrain appears as dark blue/purple rounded pools and reduces forward ocean/world speed.
 - Terrain patches are explicit data objects with type, lane center, lane radius, track start, length, and seed.
 - The wave height remains visual-only; terrain speed is tracked separately in `OceanState.world`.
 - Scoring, collision, timer, and destination UI are still intentionally deferred.

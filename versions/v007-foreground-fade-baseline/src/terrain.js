@@ -63,12 +63,6 @@ function advanceWorldProgress(time) {
 }
 
 function drawTerrain(time) {
-  const { TERRAIN } = window.OceanConfig;
-
-  if (!TERRAIN.drawSprites) {
-    return;
-  }
-
   const state = window.OceanState;
   const drawBand = getTerrainDrawBand();
 
@@ -278,12 +272,6 @@ function drawTerrainProbe() {
 }
 
 function findPatchAtLaneAndDepth(lane, depth) {
-  const terrain = getTerrainAt(lane, depth);
-
-  return terrain.patch;
-}
-
-function getTerrainAt(lane, depth) {
   const patches = window.OceanState.terrain.visiblePatches;
 
   for (let i = 0; i < patches.length; i += 1) {
@@ -291,42 +279,11 @@ function getTerrainAt(lane, depth) {
     const laneDistance = Math.abs(lane - patch.laneCenter);
 
     if (laneDistance <= patch.laneRadius && depthIsInsidePatch(depth, patch)) {
-      return {
-        type: patch.type,
-        patch,
-      };
+      return patch;
     }
   }
 
-  return {
-    type: "neutral",
-    patch: null,
-  };
-}
-
-function getTerrainVisualAt(lane, depth) {
-  const drawBand = getTerrainDrawBand();
-
-  if (depth < drawBand.minDepth || depth > drawBand.maxDepth) {
-    return {
-      type: "neutral",
-      alpha: 0,
-    };
-  }
-
-  const terrain = getTerrainAt(lane, depth);
-
-  if (terrain.type === "neutral") {
-    return {
-      type: "neutral",
-      alpha: 0,
-    };
-  }
-
-  return {
-    type: terrain.type,
-    alpha: getTerrainDepthAlpha(depth, drawBand),
-  };
+  return null;
 }
 
 function depthIsInsidePatch(depth, patch) {
@@ -434,6 +391,4 @@ function wrapDepth(value) {
 window.OceanTerrain = {
   updateTerrain,
   drawTerrain,
-  getTerrainAt,
-  getTerrainVisualAt,
 };
