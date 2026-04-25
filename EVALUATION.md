@@ -113,6 +113,12 @@ Current preference:
 - Disabled Canvas shadow/glow effects by default through `PERFORMANCE.enableCanvasShadows` and `PERFORMANCE.enableAudioGlow`.
 - Disabled automatic mobile stroke-count reduction by default so the grid keeps full vector line density and avoids flicker/quality dips.
 
+### 2026-04-25 - Simple Multi-Format Audio Fallback
+
+- Kept the prototype on the simple custom audio manager instead of adding an audio library.
+- Standardized the intended source set as OGG, MP3, M4A, and WAV versions of the same mixed track.
+- Added a short per-source startup timeout so the loader can fall through when a browser accepts a format but does not actually begin playback.
+
 Next diagnostic question:
 
 ```text

@@ -15,7 +15,7 @@ function setupAudio() {
   audio.element.playsInline = true;
   audio.sourceCandidates = getSupportedAudioSources(audio.element, AUDIO.sources);
   audio.sourceStatus = audio.sourceCandidates.length > 0
-    ? `ready: ${getFileName(audio.sourceCandidates[0].src)}`
+    ? `ready: ${getSourceQueueLabel()}`
     : "no playable source";
   selectAudioSource();
 
@@ -32,6 +32,7 @@ function setupAudio() {
     audio.sourceStatus = audio.currentSource
       ? `failed: ${getFileName(audio.currentSource)}`
       : "source failed";
+    audio.isStarting = false;
   });
 
   audio.element.addEventListener("canplay", () => {
@@ -46,6 +47,10 @@ function startAudio() {
   const audio = window.OceanState.audio;
 
   if (!AUDIO.enabled || audio.isMissing || !audio.element) {
+    return;
+  }
+
+  if (audio.isStarting || (audio.isReady && audio.status === "playing")) {
     return;
   }
 
@@ -79,35 +84,95 @@ function startAudio() {
   audio.status = "starting";
   audio.sourceStatus = `trying: ${getFileName(audio.currentSource)}`;
   audio.hasError = false;
+  audio.isStarting = true;
 
   startCurrentAudioSource();
 }
 
 function startCurrentAudioSource() {
+  const { AUDIO } = window.OceanConfig;
   const audio = window.OceanState.audio;
+  const attemptId = audio.startAttemptId + 1;
 
+  audio.startAttemptId = attemptId;
+  audio.sourceStatus = `trying: ${getFileName(audio.currentSource)}`;
   audio.context.resume()
     .then(() => {
+      if (attemptId !== audio.startAttemptId) {
+        return null;
+      }
+
       audio.element.volume = 1;
-      return audio.element.play();
+      return waitForPlayStart(audio.element.play(), AUDIO.sourceStartTimeout, attemptId);
     })
     .then(() => {
+      if (attemptId !== audio.startAttemptId) {
+        return;
+      }
+
       audio.isReady = true;
+      audio.isStarting = false;
       audio.status = "playing";
       audio.sourceStatus = `playing: ${getFileName(audio.currentSource)}`;
     })
     .catch((error) => {
-      if (tryNextAudioSource()) {
+      if (attemptId !== audio.startAttemptId) {
+        return;
+      }
+
+      if (shouldTryNextAudioSource(error) && tryNextAudioSource()) {
         audio.status = "starting";
         startCurrentAudioSource();
         return;
       }
 
       audio.hasError = true;
+      audio.isStarting = false;
       audio.isReady = false;
       audio.status = error && error.name ? error.name : "play blocked";
       audio.sourceStatus = `blocked: ${getFileName(audio.currentSource)}`;
     });
+}
+
+function shouldTryNextAudioSource(error) {
+  if (error && error.name === "NotAllowedError") {
+    return false;
+  }
+
+  return true;
+}
+
+function waitForPlayStart(playPromise, timeoutMs, attemptId) {
+  const audio = window.OceanState.audio;
+
+  if (!playPromise || !playPromise.then) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      const error = new Error("source timeout");
+
+      error.name = "source timeout";
+      reject(error);
+    }, timeoutMs);
+
+    playPromise
+      .then(() => {
+        window.clearTimeout(timeout);
+
+        if (attemptId !== audio.startAttemptId) {
+          resolve();
+          return;
+        }
+
+        resolve();
+      })
+      .catch((error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      });
+  });
 }
 
 function updateAudio() {
@@ -217,6 +282,7 @@ function selectAudioSource() {
   audio.currentSourceType = candidate.type;
   audio.element.src = candidate.src;
   audio.element.load();
+  audio.sourceStatus = `selected: ${getFileName(candidate.src)} (${audio.sourceCandidates.length} source${audio.sourceCandidates.length === 1 ? "" : "s"})`;
   return true;
 }
 
@@ -245,6 +311,14 @@ function getFileName(src) {
   }
 
   return src.split("/").pop();
+}
+
+function getSourceQueueLabel() {
+  const audio = window.OceanState.audio;
+
+  return audio.sourceCandidates
+    .map((source) => getFileName(source.src))
+    .join(" > ");
 }
 
 function drawAudioDebug() {

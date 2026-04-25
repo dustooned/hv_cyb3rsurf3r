@@ -114,10 +114,21 @@ The project includes a small generated mobile-safe test WAV at:
 assets/audio/test.wav
 ```
 
-You can also place higher quality tracks at `assets/audio/test.mp3`, `assets/audio/test.m4a`, or `assets/audio/test.ogg`. The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, vector line color/width, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
+Use the same mixed track in several browser formats when testing music reaction:
+
+```text
+assets/audio/test.ogg
+assets/audio/test.mp3
+assets/audio/test.m4a
+assets/audio/test.wav
+```
+
+The preferred order is OGG, MP3, M4A, then WAV. The loader filters that list through browser format support, tries the first playable source from a real pointer/touch/click/key gesture, then falls through if a source fails or times out. The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, vector line color/width, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
+
+For GitHub Pages/browser testing, the file extension should match the real encoded container. Do not rename an M4A/AAC export to `.mp3`; create a true MP3 file for `test.mp3` and a separate true M4A file for `test.m4a`.
 
 Current mobile audio diagnostic behavior as of April 25, 2026:
 
 - First pointer, touch, mouse, click, or key gesture calls audio start directly.
-- The debug readout reports the source being tried or played, for example `source: playing: test.ogg` or `source: playing: test.wav`.
+- The debug readout reports the source queue and active source, for example `source: selected: test.ogg (4 sources)`, `source: trying: test.mp3`, or `source: playing: test.m4a`.
 - If iPad/Chrome/Brave still block playback, the next thing to check is whether the gesture reached `audio: starting` or remained before source selection.

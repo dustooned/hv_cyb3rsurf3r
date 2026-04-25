@@ -136,6 +136,7 @@ Journal entry, April 25, 2026:
 - Added performance controls: Canvas pixel ratio cap, adaptive glow scale, and lower-detail decorative paths when performance drops.
 - Verified in the in-app Chromium browser that key/click can start audio and show moving meters, but user still reports Chrome/Brave and iPad/mobile startup trouble.
 - Current rendering fix: checked-in `test.wav` remains as a mobile fallback, but `test.ogg` is preferred again for desktop music reaction. Canvas shadows/glow and automatic stroke-count reduction are disabled by default to keep the picture purely vectorized and stable.
+- Current audio fallback fix: keep one mixed track exported as `test.ogg`, `test.mp3`, `test.m4a`, and `test.wav`. The loader keeps OGG first, filters playable formats, starts from the first user gesture, and falls through on source failure or a short startup timeout.
 
 ## Next Chat Starter
 
