@@ -10,9 +10,14 @@ function setupInput() {
     setKeyState(event, false);
   });
 
-  window.addEventListener("pointerdown", () => {
-    window.OceanAudio.startAudio();
-  });
+  window.addEventListener("pointerdown", requestAudioStartFromGesture, { capture: true });
+  window.addEventListener("mousedown", requestAudioStartFromGesture, { capture: true });
+  window.addEventListener("click", requestAudioStartFromGesture, { capture: true });
+  window.addEventListener("touchstart", requestAudioStartFromGesture, { capture: true });
+}
+
+function requestAudioStartFromGesture() {
+  window.OceanAudio.startAudio();
 }
 
 function handleKeyDown(event) {

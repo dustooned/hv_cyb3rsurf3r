@@ -5,6 +5,7 @@ function drawDecorativeGrid(time) {
   const { VIEW, DECOR } = window.OceanConfig;
   const state = window.OceanState;
   const ctx = state.ctx;
+  const glowScale = state.performance.glowScale;
   const centerX = state.width * 0.5;
   const horizonY = state.height * VIEW.horizonY;
   const frontY = state.height * VIEW.frontY;
@@ -19,16 +20,16 @@ function drawDecorativeGrid(time) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.shadowColor = "rgba(60, 190, 255, 0.85)";
-  ctx.shadowBlur = 22;
+  ctx.shadowBlur = 22 * glowScale;
 
   for (let ring = 1; ring <= DECOR.rings; ring += 1) {
     const ringT = ring / DECOR.rings;
-    drawDecorRing(centerX, horizonY, frontY, ringT, time);
+    drawDecorRing(centerX, horizonY, frontY, ringT, time, glowScale);
   }
 
   for (let spoke = 0; spoke < DECOR.spokes; spoke += 1) {
     const sideT = spoke / (DECOR.spokes - 1);
-    drawDecorSpoke(centerX, horizonY, frontY, sideT, time);
+    drawDecorSpoke(centerX, horizonY, frontY, sideT, time, glowScale);
   }
 
   ctx.restore();
@@ -48,10 +49,11 @@ function clipOutsidePlayfield(centerX, horizonY, frontY, backHalfWidth, frontHal
   ctx.clip("evenodd");
 }
 
-function drawDecorRing(centerX, horizonY, frontY, ringT, time) {
+function drawDecorRing(centerX, horizonY, frontY, ringT, time, glowScale) {
   const { DECOR } = window.OceanConfig;
   const state = window.OceanState;
   const ctx = state.ctx;
+  const steps = glowScale < 0.35 ? 32 : 64;
   const depth = ringT * ringT;
   const y = horizonY + (frontY - horizonY) * depth;
   const maxHalfWidth = state.width * (0.92 - depth * 0.12);
@@ -63,8 +65,8 @@ function drawDecorRing(centerX, horizonY, frontY, ringT, time) {
   ctx.lineWidth = 1;
   ctx.beginPath();
 
-  for (let step = 0; step <= 96; step += 1) {
-    const t = step / 96;
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
     const side = t * 2 - 1;
     const mirrorWave = Math.sin(Math.abs(side) * Math.PI * 5 + time * 0.0018 + ringT * 7);
     const x = centerX + side * maxHalfWidth;
@@ -80,9 +82,10 @@ function drawDecorRing(centerX, horizonY, frontY, ringT, time) {
   ctx.stroke();
 }
 
-function drawDecorSpoke(centerX, horizonY, frontY, sideT, time) {
+function drawDecorSpoke(centerX, horizonY, frontY, sideT, time, glowScale) {
   const state = window.OceanState;
   const ctx = state.ctx;
+  const steps = glowScale < 0.35 ? 20 : 36;
   const side = sideT * 2 - 1;
   const wobble = Math.sin(time * 0.001 + side * Math.PI * 4) * 0.06;
 
@@ -90,8 +93,8 @@ function drawDecorSpoke(centerX, horizonY, frontY, sideT, time) {
   ctx.lineWidth = 1;
   ctx.beginPath();
 
-  for (let step = 0; step <= 48; step += 1) {
-    const t = step / 48;
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
     const depth = t * t;
     const y = horizonY + (frontY - horizonY) * depth;
     const halfWidth = state.width * (0.18 + depth * 0.78);

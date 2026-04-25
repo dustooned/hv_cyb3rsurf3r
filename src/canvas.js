@@ -25,10 +25,13 @@ function requestCanvasResize() {
 }
 
 function resizeCanvas() {
+  const { PERFORMANCE } = window.OceanConfig;
   const state = window.OceanState;
 
   const isSmallScreen = Math.min(window.innerWidth, window.innerHeight) < 760;
-  const maxPixelRatio = isSmallScreen ? 1.35 : 2;
+  const maxPixelRatio = isSmallScreen
+    ? PERFORMANCE.maxPixelRatioSmall
+    : PERFORMANCE.maxPixelRatioDesktop;
 
   state.pixelRatio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
   state.width = window.innerWidth;

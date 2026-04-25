@@ -12,7 +12,6 @@ function setupAudio() {
   audio.element = new Audio();
   audio.element.loop = true;
   audio.element.preload = "metadata";
-  audio.element.crossOrigin = "anonymous";
 
   for (let i = 0; i < AUDIO.sources.length; i += 1) {
     const source = document.createElement("source");
@@ -158,6 +157,8 @@ function drawAudioDebug() {
     return;
   }
 
+  const { PERFORMANCE } = window.OceanConfig;
+  const perf = state.performance;
   const left = 14;
   const top = 14;
   const width = 168;
@@ -167,12 +168,17 @@ function drawAudioDebug() {
   ctx.font = "11px Arial, Helvetica, sans-serif";
   ctx.textBaseline = "top";
   ctx.fillStyle = "rgba(0, 0, 0, 0.48)";
-  ctx.fillRect(left - 8, top - 8, width + 16, 66);
+  ctx.fillRect(left - 8, top - 8, width + 16, PERFORMANCE.showFrameRate ? 82 : 66);
   ctx.fillStyle = audio.isReady ? "rgba(170, 255, 220, 0.95)" : "rgba(255, 230, 120, 0.95)";
   ctx.fillText(`audio: ${audio.status}`, left, top);
   drawAudioMeter(ctx, "bass", audio.bass, left, top + 18, width, rowHeight, "rgba(70, 255, 175, 0.88)");
   drawAudioMeter(ctx, "treble", audio.treble, left, top + 32, width, rowHeight, "rgba(120, 210, 255, 0.88)");
   drawAudioMeter(ctx, "volume", audio.volume, left, top + 46, width, rowHeight, "rgba(255, 245, 125, 0.88)");
+
+  if (PERFORMANCE.showFrameRate) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+    ctx.fillText(`fps: ${Math.round(perf.fps)} glow: ${perf.glowScale.toFixed(2)}`, left, top + 62);
+  }
   ctx.restore();
 }
 

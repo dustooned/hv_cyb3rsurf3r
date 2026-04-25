@@ -23,6 +23,13 @@ window.OceanState = {
     visiblePatches: [],
   },
 
+  performance: {
+    lastFrameTime: 0,
+    frameMs: 16.7,
+    fps: 60,
+    glowScale: 1,
+  },
+
   timing: {
     targetLane: window.OceanConfig.PLAYER.startingLane,
     targetDepth: 0,

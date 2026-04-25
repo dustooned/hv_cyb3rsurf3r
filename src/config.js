@@ -63,6 +63,17 @@ window.OceanConfig = {
     showDebugReadout: true,
   },
 
+  PERFORMANCE: {
+    maxPixelRatioDesktop: 1,
+    maxPixelRatioSmall: 1,
+    targetFrameMs: 18,
+    slowFrameMs: 28,
+    glowRecoverRate: 0.018,
+    glowDropRate: 0.08,
+    minGlowScale: 0.08,
+    showFrameRate: true,
+  },
+
   VIEW: {
     horizonY: 0.24,
     frontY: 0.9,
