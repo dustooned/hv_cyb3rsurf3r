@@ -48,9 +48,6 @@ window.OceanState = {
     bass: 0,
     treble: 0,
     volume: 0,
-    bassHit: 0,
-    trebleHit: 0,
-    volumeHit: 0,
   },
 
   keys: {

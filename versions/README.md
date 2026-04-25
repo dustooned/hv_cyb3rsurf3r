@@ -14,7 +14,11 @@ The root project folder remains the active working copy. When a prototype state 
 - `v006-terrain-speed-prototype`: first readable boost/slow terrain classification prototype with forward world-speed modulation.
 - `v007-foreground-fade-baseline`: pre-lofi terrain-shape version with slower world speed, horizon clipping, foreground fade, and mobile canvas cleanup.
 - `v008-lofi-grid-terrain`: lofi version that reduces grid/decor density and renders boost/slow terrain as colored main-grid lines.
+- `v009-audio-reactive-terrain-baseline`: current checkpoint with yellow timing rail, OGG-first audio analysis, terrain pulse, wave shimmer, and white grid glow reactivity.
+- `v010-centered-surfboard-audio-grid-baseline`: current checkpoint with full-grid audio visual response, lower mechanical wave amplitude, and a centered grid-angle surfboard anchor.
 
 ## Active Additions After v008
 
 - Yellow timing rail prototype: Space-triggered timing target that requires lane alignment and grants a temporary high-speed boost.
+- Audio-reactive visual prototype: optional `assets/audio/test.ogg` analysis drives wave height, terrain pulse, shimmer, and white grid glow without affecting gameplay generation.
+- Surfboard placement pass: the board now anchors on the active lane rail point and follows the projected grid angle while preserving movement tilt.

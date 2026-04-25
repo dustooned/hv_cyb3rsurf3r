@@ -20,7 +20,6 @@ function createGrid() {
         col,
         depth: 0,
         waveHeight: 0,
-        audioHeight: 0,
       });
     }
 
@@ -50,7 +49,7 @@ function projectGrid() {
       const signedCol = colT * 2 - 1;
 
       vertex.x = centerX + signedCol * halfWidth;
-      vertex.y = screenY - (vertex.waveHeight + vertex.audioHeight) * lift;
+      vertex.y = screenY - vertex.waveHeight * lift;
     }
   }
 }
@@ -89,15 +88,13 @@ function drawLine(a, b) {
   const audio = window.OceanState.audio;
   const audioConfig = window.OceanConfig.AUDIO;
   const wave = Math.max(a.waveHeight, b.waveHeight);
-  const gridPulse = getLineAudioPulse(a, b);
-  const lineEnergy = Math.max(wave, gridPulse);
   const glowLift = audio.volume * audioConfig.volumeGlowAmount;
   const whiteThreshold = 0.45 - audio.volume * audioConfig.whiteThresholdShift;
   const terrain = window.OceanTerrain.getTerrainVisualAt(
     (a.col + b.col) * 0.5,
     getLineSampleDepth(a.depth, b.depth),
   );
-  const alpha = Math.max(0.35, Math.min(1, 0.55 + wave * 0.5 + gridPulse * 0.52 + terrain.alpha * 0.18 + glowLift));
+  const alpha = Math.max(0.35, Math.min(1, 0.55 + wave * 0.7 + terrain.alpha * 0.18 + glowLift));
 
   if (terrain.type === "boost") {
     strokeTerrainLine(a, b, "boost", "rgba(55, 255, 180, 0.26)", `rgba(70, 255, 175, ${Math.max(alpha, 0.84)})`);
@@ -107,12 +104,12 @@ function drawLine(a, b) {
     return;
   } else {
     ctx.shadowColor = "rgba(60, 255, 220, 0.7)";
-    ctx.shadowBlur = 8 + audio.volume * 10 + gridPulse * audioConfig.gridPulseGlowAmount;
+    ctx.shadowBlur = 8 + audio.volume * 10;
     ctx.strokeStyle =
-      lineEnergy > whiteThreshold
+      wave > whiteThreshold
         ? `rgba(240, 255, 255, ${alpha})`
         : `rgba(70, 255, 210, ${alpha})`;
-    ctx.lineWidth = (lineEnergy > whiteThreshold ? 2 : 1) + gridPulse * audioConfig.gridPulseWidthAmount;
+    ctx.lineWidth = wave > whiteThreshold ? 2 : 1;
   }
 
   ctx.beginPath();
@@ -158,26 +155,6 @@ function getLineSampleDepth(aDepth, bDepth) {
   }
 
   return (aDepth + bDepth) * 0.5;
-}
-
-function getLineAudioPulse(a, b) {
-  const audio = window.OceanState.audio;
-  const depth = getLineSampleDepth(a.depth, b.depth);
-  const nearField = 0.35 + depth * 0.65;
-  const vertexLift = Math.max(a.audioHeight, b.audioHeight);
-
-  return Math.min(
-    1,
-    (
-      audio.bass * 0.24 +
-      audio.treble * 0.16 +
-      audio.volume * 0.28 +
-      audio.bassHit * 0.42 +
-      audio.trebleHit * 0.24 +
-      audio.volumeHit * 0.34 +
-      vertexLift * 1.45
-    ) * nearField,
-  );
 }
 
 window.OceanGrid = {

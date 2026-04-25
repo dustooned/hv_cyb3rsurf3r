@@ -63,8 +63,6 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `versions/v003-very-fast-arcade-lane-rail` preserves the current lane-rail control checkpoint.
 - `versions/v004-infrastructure-baseline` preserves the current modular baseline before the next speed/infrastructure pass.
 - `versions/v005-retarget-easeout-controls` preserves the current approved lane-control feel before expansion.
-- `versions/v009-audio-reactive-terrain-baseline` preserves the current audio-reactive terrain baseline before broadening audio response across the full main grid.
-- `versions/v010-centered-surfboard-audio-grid-baseline` preserves the current centered-surfboard and full-grid audio response baseline before the next adjustment pass.
 
 ## Main Tuning Points
 

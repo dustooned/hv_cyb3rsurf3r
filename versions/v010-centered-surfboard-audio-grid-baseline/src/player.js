@@ -105,13 +105,10 @@ function drawPlayer(time) {
   const state = window.OceanState;
   const ctx = state.ctx;
   const boardPosition = getPlayerBoardPosition();
-  const artScale = getPlayerArtScale();
-  const halfWidth = PLAYER.halfWidth * artScale;
-  const length = PLAYER.length * artScale;
   const centerX = boardPosition.x;
   const boardCenterY = boardPosition.y;
-  const boardTopY = -length * 0.54;
-  const boardBottomY = length * 0.46;
+  const boardTopY = -PLAYER.length * 0.54;
+  const boardBottomY = PLAYER.length * 0.46;
   const boardMidY = 0;
   const railAngle = getPlayerRailAngle();
 
@@ -133,19 +130,19 @@ function drawPlayer(time) {
   ctx.beginPath();
   ctx.moveTo(0, boardTopY);
   ctx.bezierCurveTo(
-    halfWidth,
-    boardTopY + 15 * artScale,
-    halfWidth,
+    PLAYER.halfWidth,
+    boardTopY + 15,
+    PLAYER.halfWidth,
     boardMidY,
-    halfWidth * 0.55,
+    PLAYER.halfWidth * 0.55,
     boardBottomY,
   );
-  ctx.quadraticCurveTo(0, boardBottomY + 9 * artScale, -halfWidth * 0.55, boardBottomY);
+  ctx.quadraticCurveTo(0, boardBottomY + 9, -PLAYER.halfWidth * 0.55, boardBottomY);
   ctx.bezierCurveTo(
-    -halfWidth,
+    -PLAYER.halfWidth,
     boardMidY,
-    -halfWidth,
-    boardTopY + 15 * artScale,
+    -PLAYER.halfWidth,
+    boardTopY + 15,
     0,
     boardTopY,
   );
@@ -155,8 +152,8 @@ function drawPlayer(time) {
   ctx.strokeStyle = "rgba(80, 255, 210, 0.85)";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, boardTopY + 12 * artScale);
-  ctx.lineTo(0, boardBottomY - 7 * artScale);
+  ctx.moveTo(0, boardTopY + 12);
+  ctx.lineTo(0, boardBottomY - 7);
   ctx.stroke();
 
   ctx.restore();
@@ -176,32 +173,6 @@ function getPlayerBoardPosition() {
     x: lerp(leftPoint.x, rightPoint.x, laneBlend),
     y: lerp(leftPoint.y, rightPoint.y, laneBlend),
   };
-}
-
-function getPlayerArtScale() {
-  const { PLAYER } = window.OceanConfig;
-  const state = window.OceanState;
-  const railSpacing = getControlRailSpacing();
-  const shortSide = Math.min(state.width, state.height);
-  const baseScale = railSpacing / PLAYER.artReferenceLaneSpacing;
-  const deviceBoost = shortSide < 520
-    ? PLAYER.artPhoneScaleBoost
-    : shortSide < 900
-      ? PLAYER.artTabletScaleBoost
-      : 1;
-
-  return Math.max(
-    PLAYER.artMinScale,
-    Math.min(PLAYER.artMaxScale, baseScale * deviceBoost),
-  );
-}
-
-function getControlRailSpacing() {
-  const centerLane = Math.round(window.OceanState.player.lane);
-  const leftPoint = getControlRailPoint(Math.max(0, centerLane - 1));
-  const rightPoint = getControlRailPoint(Math.min(window.OceanConfig.GRID.cols - 1, centerLane + 1));
-
-  return Math.abs(rightPoint.x - leftPoint.x) * 0.5;
 }
 
 function getPlayerRailAngle() {

@@ -76,8 +76,6 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 - `v006-terrain-speed-prototype`: terrain classification and world-speed prototype.
 - `v007-foreground-fade-baseline`: pre-lofi terrain-shape version with horizon clipping, foreground fade, and mobile canvas cleanup.
 - `v008-lofi-grid-terrain`: active lofi version with reduced grid/decor density and terrain shown through colored grid lines.
-- `v009-audio-reactive-terrain-baseline`: current checkpoint with yellow timing rail, OGG-first audio analysis, terrain pulse, wave shimmer, and white grid glow reactivity.
-- `v010-centered-surfboard-audio-grid-baseline`: current checkpoint with full-grid audio visual response, reduced automatic wave amplitude, and a surfboard centered on the projected rail dot.
 
 ## Lessons Learned
 
@@ -125,5 +123,5 @@ Please read README.md, HANDOFF.md, and EVALUATION.md first. The current app runs
 
 Current direction: lofi Tempest-like vector ocean, lane-rail surfboard controls, front anchor dots, ease-out retarget movement, surfboard tilt, and readable boost/slow terrain shown as colored grid lines that modulate forward world speed.
 
-Next task: broaden audio reactivity from the left-side wave mask to the whole main grid. Keep it visual-only for now: bass/treble/volume should affect all main-grid vertices or line glow without changing terrain generation, yellow target timing, scoring, collision, timer, or destination logic.
+Next task: playtest whether the lofi terrain-colored grid lines are readable at speed. Tune `GRID.cols`, `GRID.rows`, `TERRAIN.sampleDepth`, patch lane/radius values, and `boostMultiplier`/`slowMultiplier` before adding scoring, collision, timer, or destination logic.
 ```

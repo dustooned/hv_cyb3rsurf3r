@@ -105,15 +105,11 @@ function drawPlayer(time) {
   const state = window.OceanState;
   const ctx = state.ctx;
   const boardPosition = getPlayerBoardPosition();
-  const artScale = getPlayerArtScale();
-  const halfWidth = PLAYER.halfWidth * artScale;
-  const length = PLAYER.length * artScale;
   const centerX = boardPosition.x;
-  const boardCenterY = boardPosition.y;
-  const boardTopY = -length * 0.54;
-  const boardBottomY = length * 0.46;
-  const boardMidY = 0;
-  const railAngle = getPlayerRailAngle();
+  const boardBottomY = boardPosition.y - PLAYER.bottomOffset;
+  const boardTopY = boardBottomY - PLAYER.length;
+  const boardMidY = boardTopY + PLAYER.length * 0.55;
+  const boardCenterY = boardTopY + PLAYER.length * 0.52;
 
   if (PLAYER.showLaneTicks) {
     drawControlRail(time);
@@ -121,7 +117,7 @@ function drawPlayer(time) {
 
   ctx.save();
   ctx.translate(centerX, boardCenterY);
-  ctx.rotate(railAngle * PLAYER.railAngleFollow + state.player.tilt);
+  ctx.rotate(state.player.tilt);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.shadowColor = "rgba(255, 255, 255, 0.85)";
@@ -131,23 +127,23 @@ function drawPlayer(time) {
   ctx.strokeStyle = "rgba(245, 255, 255, 0.95)";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(0, boardTopY);
+  ctx.moveTo(0, boardTopY - boardCenterY);
   ctx.bezierCurveTo(
-    halfWidth,
-    boardTopY + 15 * artScale,
-    halfWidth,
-    boardMidY,
-    halfWidth * 0.55,
-    boardBottomY,
+    PLAYER.halfWidth,
+    boardTopY + 18 - boardCenterY,
+    PLAYER.halfWidth,
+    boardMidY - boardCenterY,
+    PLAYER.halfWidth * 0.55,
+    boardBottomY - boardCenterY,
   );
-  ctx.quadraticCurveTo(0, boardBottomY + 9 * artScale, -halfWidth * 0.55, boardBottomY);
+  ctx.quadraticCurveTo(0, boardBottomY + 12 - boardCenterY, -PLAYER.halfWidth * 0.55, boardBottomY - boardCenterY);
   ctx.bezierCurveTo(
-    -halfWidth,
-    boardMidY,
-    -halfWidth,
-    boardTopY + 15 * artScale,
+    -PLAYER.halfWidth,
+    boardMidY - boardCenterY,
+    -PLAYER.halfWidth,
+    boardTopY + 18 - boardCenterY,
     0,
-    boardTopY,
+    boardTopY - boardCenterY,
   );
   ctx.stroke();
 
@@ -155,8 +151,8 @@ function drawPlayer(time) {
   ctx.strokeStyle = "rgba(80, 255, 210, 0.85)";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, boardTopY + 12 * artScale);
-  ctx.lineTo(0, boardBottomY - 7 * artScale);
+  ctx.moveTo(0, boardTopY + 14 - boardCenterY);
+  ctx.lineTo(0, boardBottomY - 8 - boardCenterY);
   ctx.stroke();
 
   ctx.restore();
@@ -176,44 +172,6 @@ function getPlayerBoardPosition() {
     x: lerp(leftPoint.x, rightPoint.x, laneBlend),
     y: lerp(leftPoint.y, rightPoint.y, laneBlend),
   };
-}
-
-function getPlayerArtScale() {
-  const { PLAYER } = window.OceanConfig;
-  const state = window.OceanState;
-  const railSpacing = getControlRailSpacing();
-  const shortSide = Math.min(state.width, state.height);
-  const baseScale = railSpacing / PLAYER.artReferenceLaneSpacing;
-  const deviceBoost = shortSide < 520
-    ? PLAYER.artPhoneScaleBoost
-    : shortSide < 900
-      ? PLAYER.artTabletScaleBoost
-      : 1;
-
-  return Math.max(
-    PLAYER.artMinScale,
-    Math.min(PLAYER.artMaxScale, baseScale * deviceBoost),
-  );
-}
-
-function getControlRailSpacing() {
-  const centerLane = Math.round(window.OceanState.player.lane);
-  const leftPoint = getControlRailPoint(Math.max(0, centerLane - 1));
-  const rightPoint = getControlRailPoint(Math.min(window.OceanConfig.GRID.cols - 1, centerLane + 1));
-
-  return Math.abs(rightPoint.x - leftPoint.x) * 0.5;
-}
-
-function getPlayerRailAngle() {
-  const { GRID, PLAYER } = window.OceanConfig;
-  const lane = window.OceanState.player.lane;
-  const railRow = Math.max(0, GRID.rows - 1 - PLAYER.railRowsFromFront);
-  const railDepth = railRow / (GRID.rows - 1);
-  const boardPoint = getProjectedGridPoint(lane, railDepth);
-  const backPoint = getProjectedGridPoint(lane, Math.max(0, railDepth - 0.08));
-  const laneAngle = Math.atan2(boardPoint.y - backPoint.y, boardPoint.x - backPoint.x);
-
-  return laneAngle - Math.PI * 0.5;
 }
 
 function drawControlRail(time) {
@@ -245,26 +203,18 @@ function drawControlRail(time) {
 }
 
 function getControlRailPoint(lane) {
-  const { GRID, PLAYER } = window.OceanConfig;
-  const railRow = Math.max(0, GRID.rows - 1 - PLAYER.railRowsFromFront);
-  const railDepth = railRow / (GRID.rows - 1);
-
-  return getProjectedGridPoint(lane, railDepth);
-}
-
-function getProjectedGridPoint(lane, depth) {
-  const { GRID, VIEW } = window.OceanConfig;
+  const { GRID, VIEW, PLAYER } = window.OceanConfig;
   const state = window.OceanState;
   const centerX = state.width * 0.5;
   const horizonY = state.height * VIEW.horizonY;
   const frontY = state.height * VIEW.frontY;
   const frontHalfWidth = state.width * VIEW.frontHalfWidth;
   const backHalfWidth = state.width * VIEW.backHalfWidth;
-  const clampedLane = Math.max(0, Math.min(GRID.cols - 1, lane));
-  const clampedDepth = Math.max(0, Math.min(1, depth));
-  const colT = clampedLane / (GRID.cols - 1);
+  const colT = lane / (GRID.cols - 1);
   const signedCol = colT * 2 - 1;
-  const perspectiveDepth = clampedDepth * clampedDepth;
+  const railRow = Math.max(0, GRID.rows - 1 - PLAYER.railRowsFromFront);
+  const railDepth = railRow / (GRID.rows - 1);
+  const perspectiveDepth = railDepth * railDepth;
   const railY = horizonY + (frontY - horizonY) * perspectiveDepth;
   const railHalfWidth = backHalfWidth + (frontHalfWidth - backHalfWidth) * perspectiveDepth;
 
