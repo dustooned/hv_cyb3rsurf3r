@@ -54,7 +54,7 @@ The root `src/` folder is now the active source of truth:
 - `grid.js`: grid creation, projection, and drawing.
 - `wave.js`: procedural row depth and wave height.
 - `decor.js`: blue decorative side-zone rendering.
-- `terrain.js`: terrain patch data, terrain queries, optional legacy shape drawing, and speed sampling.
+- `terrain.js`: terrain patch data, terrain queries, and speed sampling.
 - `player.js`: surfboard lane movement and drawing.
 - `input.js`: keyboard state and movement requests.
 - `main.js`: startup and animation loop only.
@@ -69,7 +69,7 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 - `v004-infrastructure-baseline`: modular baseline before the current retarget/ease-out control pass.
 - `v005-retarget-easeout-controls`: current approved checkpoint before expansion.
 - `v006-terrain-speed-prototype`: terrain classification and world-speed prototype.
-- `v007-foreground-fade-baseline`: terrain sprite version with horizon clipping, foreground fade, and mobile canvas cleanup.
+- `v007-foreground-fade-baseline`: pre-lofi terrain-shape version with horizon clipping, foreground fade, and mobile canvas cleanup.
 - `v008-lofi-grid-terrain`: active lofi version with reduced grid/decor density and terrain shown through colored grid lines.
 
 ## Lessons Learned
@@ -92,18 +92,17 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 5. Keep two readable terrain types before adding hazards or scoring:
    - Boost terrain: bright cyan/green grid lines, increases world speed.
    - Slow terrain: purple/blue grid lines, reduces world speed.
-6. Keep separate terrain sprites off unless the grid-only language becomes too subtle.
+6. Keep terrain readable through the grid line language before adding new visual systems.
 7. Save another version snapshot before adding collision, timer, scoring, or destination logic.
 
 ## Current Terrain Prototype
 
 Terrain is intentionally separate from wave height:
 
-- `src/config.js` has lofi `GRID`/`DECOR` density values plus `TERRAIN` tuning for base speed, boost/slow multipliers, sample depth, optional sprite drawing, and patch definitions.
+- `src/config.js` has lofi `GRID`/`DECOR` density values plus `TERRAIN` tuning for base speed, boost/slow multipliers, sample depth, and patch definitions.
 - `OceanState.world.progress` is the single forward-scroll value consumed by `src/wave.js`.
 - `src/terrain.js` samples the player's current lane against visible terrain at `TERRAIN.sampleDepth`.
 - `src/grid.js` queries terrain while drawing each grid line and colors boost/slow zones directly on the main grid.
-- `TERRAIN.drawSprites` can re-enable the older patch-shape rendering preserved in `v007`.
 - No scoring, collision, timer, destination, or failure states have been added.
 
 ## Next Chat Starter

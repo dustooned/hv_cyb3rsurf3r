@@ -14,7 +14,6 @@ function animate(time) {
   window.OceanPlayer.updatePlayer(time);
   window.OceanCanvas.drawBackground();
   window.OceanDecor.drawDecorativeGrid(time);
-  window.OceanTerrain.drawTerrain(time);
   window.OceanGrid.drawGrid();
   window.OceanPlayer.drawPlayer(time);
 

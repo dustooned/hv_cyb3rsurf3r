@@ -69,7 +69,6 @@ Edit `src/config.js` first when tuning behavior.
 - `TERRAIN.sampleDepth`: grid-depth line where the board reads terrain for speed.
 - `TERRAIN.nearHorizonDepth`: first depth where terrain color is allowed to appear.
 - `TERRAIN.foregroundFadeRows`: number of rows before the surfboard rail used to fade terrain out.
-- `TERRAIN.drawSprites`: optional legacy terrain patch drawing. Current lofi mode keeps this off.
 - `TERRAIN.patches`: readable abstract terrain definitions.
 - `VIEW.*`: horizon, front edge, grid width, and wave lift.
 - `DECOR.*`: blue decorative layer density and motion.

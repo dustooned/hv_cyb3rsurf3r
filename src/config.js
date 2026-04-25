@@ -18,8 +18,6 @@ window.OceanConfig = {
     nearHorizonDepth: 0.17,
     // Fade terrain out across the last rows before the surfboard rail.
     foregroundFadeRows: 2,
-    drawSprites: false,
-    edgeNoise: false,
     patches: [
       { id: "boost-a", type: "boost", laneCenter: 5, laneRadius: 2.8, start: 0.12, length: 0.24, seed: 11 },
       { id: "slow-a", type: "slow", laneCenter: 13, laneRadius: 3.1, start: 0.32, length: 0.22, seed: 23 },
