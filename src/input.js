@@ -9,6 +9,10 @@ function setupInput() {
   window.addEventListener("keyup", (event) => {
     setKeyState(event, false);
   });
+
+  window.addEventListener("pointerdown", () => {
+    window.OceanAudio.startAudio();
+  });
 }
 
 function handleKeyDown(event) {

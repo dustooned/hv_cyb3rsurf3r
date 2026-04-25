@@ -20,6 +20,7 @@ function animate(time) {
   window.OceanGrid.drawGrid();
   window.OceanTiming.drawTiming(time);
   window.OceanPlayer.drawPlayer(time);
+  window.OceanAudio.drawAudioDebug();
 
   requestAnimationFrame(animate);
 }

@@ -12,6 +12,7 @@ function setupAudio() {
   audio.element = new Audio();
   audio.element.loop = true;
   audio.element.preload = "metadata";
+  audio.element.crossOrigin = "anonymous";
 
   for (let i = 0; i < AUDIO.sources.length; i += 1) {
     const source = document.createElement("source");
@@ -26,6 +27,13 @@ function setupAudio() {
     audio.isMissing = true;
     audio.isReady = false;
     audio.hasError = true;
+    audio.status = "audio missing";
+  });
+
+  audio.element.addEventListener("canplay", () => {
+    if (!audio.isReady) {
+      audio.status = "press key/click";
+    }
   });
 }
 
@@ -33,7 +41,7 @@ function startAudio() {
   const { AUDIO } = window.OceanConfig;
   const audio = window.OceanState.audio;
 
-  if (!AUDIO.enabled || audio.hasStarted || audio.isMissing || !audio.element) {
+  if (!AUDIO.enabled || audio.isMissing || !audio.element) {
     return;
   }
 
@@ -44,24 +52,34 @@ function startAudio() {
     return;
   }
 
-  audio.context = new AudioContextClass();
-  audio.analyser = audio.context.createAnalyser();
-  audio.analyser.fftSize = AUDIO.fftSize;
-  audio.analyser.smoothingTimeConstant = AUDIO.smoothingTimeConstant;
-  audio.frequencyData = new Uint8Array(audio.analyser.frequencyBinCount);
-  audio.source = audio.context.createMediaElementSource(audio.element);
-  audio.source.connect(audio.analyser);
-  audio.analyser.connect(audio.context.destination);
-  audio.hasStarted = true;
+  if (!audio.hasStarted) {
+    audio.context = new AudioContextClass();
+    audio.analyser = audio.context.createAnalyser();
+    audio.analyser.fftSize = AUDIO.fftSize;
+    audio.analyser.smoothingTimeConstant = AUDIO.smoothingTimeConstant;
+    audio.frequencyData = new Uint8Array(audio.analyser.frequencyBinCount);
+    audio.source = audio.context.createMediaElementSource(audio.element);
+    audio.source.connect(audio.analyser);
+    audio.analyser.connect(audio.context.destination);
+    audio.hasStarted = true;
+  }
+
+  audio.status = "starting";
+  audio.hasError = false;
 
   audio.context.resume()
-    .then(() => audio.element.play())
+    .then(() => {
+      audio.element.volume = 1;
+      return audio.element.play();
+    })
     .then(() => {
       audio.isReady = true;
+      audio.status = "playing";
     })
-    .catch(() => {
+    .catch((error) => {
       audio.hasError = true;
       audio.isReady = false;
+      audio.status = error && error.name ? error.name : "play blocked";
     });
 }
 
@@ -88,6 +106,10 @@ function updateAudio() {
   audio.bassHit = Math.max(audio.bassHit * 0.86, bassRise * 2.6);
   audio.trebleHit = Math.max(audio.trebleHit * 0.82, trebleRise * 2.2);
   audio.volumeHit = Math.max(audio.volumeHit * 0.84, volumeRise * 2.3);
+
+  if (audio.isReady && audio.status !== "playing") {
+    audio.status = "playing";
+  }
 }
 
 function easeAudioValuesToRest() {
@@ -126,8 +148,49 @@ function getAudioMimeType(src) {
   return "";
 }
 
+function drawAudioDebug() {
+  const { AUDIO } = window.OceanConfig;
+  const state = window.OceanState;
+  const audio = state.audio;
+  const ctx = state.ctx;
+
+  if (!AUDIO.showDebugReadout) {
+    return;
+  }
+
+  const left = 14;
+  const top = 14;
+  const width = 168;
+  const rowHeight = 10;
+
+  ctx.save();
+  ctx.font = "11px Arial, Helvetica, sans-serif";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.48)";
+  ctx.fillRect(left - 8, top - 8, width + 16, 66);
+  ctx.fillStyle = audio.isReady ? "rgba(170, 255, 220, 0.95)" : "rgba(255, 230, 120, 0.95)";
+  ctx.fillText(`audio: ${audio.status}`, left, top);
+  drawAudioMeter(ctx, "bass", audio.bass, left, top + 18, width, rowHeight, "rgba(70, 255, 175, 0.88)");
+  drawAudioMeter(ctx, "treble", audio.treble, left, top + 32, width, rowHeight, "rgba(120, 210, 255, 0.88)");
+  drawAudioMeter(ctx, "volume", audio.volume, left, top + 46, width, rowHeight, "rgba(255, 245, 125, 0.88)");
+  ctx.restore();
+}
+
+function drawAudioMeter(ctx, label, value, x, y, width, height, color) {
+  const labelWidth = 42;
+  const meterWidth = width - labelWidth;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+  ctx.fillText(label, x, y - 1);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.16)";
+  ctx.fillRect(x + labelWidth, y, meterWidth, height);
+  ctx.fillStyle = color;
+  ctx.fillRect(x + labelWidth, y, meterWidth * Math.max(0, Math.min(1, value)), height);
+}
+
 window.OceanAudio = {
   setupAudio,
   startAudio,
   updateAudio,
+  drawAudioDebug,
 };

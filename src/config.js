@@ -60,6 +60,7 @@ window.OceanConfig = {
     whiteThresholdShift: 0.12,
     terrainGlowAmount: 20,
     terrainWidthAmount: 2.2,
+    showDebugReadout: true,
   },
 
   VIEW: {

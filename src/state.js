@@ -45,6 +45,7 @@ window.OceanState = {
     isReady: false,
     isMissing: false,
     hasError: false,
+    status: "waiting",
     bass: 0,
     treble: 0,
     volume: 0,
