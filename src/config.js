@@ -89,7 +89,7 @@ window.OceanConfig = {
     tiltMaxDegrees: 12,
     tiltResponse: 0.35,
     tiltReturnSpeed: 0.18,
-    halfWidth: 70,
+    halfWidth: 20,
     length: 120,
     artReferenceLaneSpacing: 78,
     artMinScale: 0.26,
