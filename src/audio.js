@@ -98,8 +98,8 @@ function startCurrentAudioSource() {
   const attemptId = audio.startAttemptId + 1;
 
   audio.startAttemptId = attemptId;
-  audio.sourceStatus = `trying: ${getFileName(audio.currentSource)}`;
-  audio.context.resume()
+  audio.sourceStatus = `trying: ${getFileName(audio.currentSource)} (${audio.sourceMode})`;
+  waitForAudioContextResume(audio.context.resume(), AUDIO.contextResumeTimeout)
     .then(() => {
       if (attemptId !== audio.startAttemptId) {
         return null;
@@ -144,6 +144,31 @@ function startCurrentAudioSource() {
         ? `gesture needed: ${getFileName(audio.currentSource)}`
         : `blocked: ${getFileName(audio.currentSource)}`;
     });
+}
+
+function waitForAudioContextResume(resumePromise, timeoutMs) {
+  if (!resumePromise || !resumePromise.then) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      const error = new Error("context resume timeout");
+
+      error.name = "context resume timeout";
+      reject(error);
+    }, timeoutMs);
+
+    resumePromise
+      .then(() => {
+        window.clearTimeout(timeout);
+        resolve();
+      })
+      .catch((error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      });
+  });
 }
 
 function scheduleDelayedAutoStart() {
@@ -344,10 +369,13 @@ function getPreferredAudioSources() {
 function shouldPreferMobileAudioSources() {
   const userAgent = navigator.userAgent || "";
   const platform = navigator.platform || "";
-  const hasTouch = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+  const touchPoints = navigator.maxTouchPoints || 0;
+  const coarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  const smallScreen = Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 900;
 
   return /Android|iPhone|iPad|iPod/i.test(userAgent) ||
-    (platform === "MacIntel" && hasTouch);
+    (platform === "MacIntel" && touchPoints > 1) ||
+    (coarsePointer && smallScreen);
 }
 
 function selectAudioSource() {
@@ -386,7 +414,7 @@ function tryNextAudioSource() {
   audio.sourceIndex = nextIndex;
   audio.currentSource = candidate.src;
   audio.currentSourceType = candidate.type;
-  audio.sourceStatus = `trying: ${getFileName(candidate.src)}`;
+  audio.sourceStatus = `trying: ${getFileName(candidate.src)} (${audio.sourceMode})`;
   audio.element.src = candidate.src;
   audio.element.load();
   return true;

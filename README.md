@@ -132,6 +132,7 @@ Current mobile audio diagnostic behavior as of April 25, 2026:
 - Chrome and Brave desktop testing worked after using the multi-format fallback procedure: keep the music files in `assets/audio`, match filenames to the configured source list, start from the browser-supported source, and verify `audio: playing` plus moving bass/treble/volume meters.
 - `AUDIO.delayedAutoStart` is temporarily enabled so the prototype waits briefly, then tries to start music on its own for quick browser/mobile visual tests.
 - Mobile source order now prefers `test.mp3` and `test.m4a` before `test.ogg`; debug text shows `selected: test.mp3 (mobile)` or `selected: test.ogg (desktop)`.
+- The script cache-buster is `mobile-audio-fallback-013`; if a phone still shows `trying: test.ogg` first, it is likely running an older cached script or being detected as desktop.
 - First pointer, touch, mouse, click, or key gesture calls audio start directly.
 - The debug readout reports the source queue and active source, for example `source: selected: test.ogg (4 sources)`, `source: trying: test.mp3`, or `source: playing: test.m4a`.
 - If a browser blocks autoplay, the debug readout should show `gesture needed: ...`; tap/click/press a key to retry from the same selected source.

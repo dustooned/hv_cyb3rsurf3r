@@ -53,6 +53,7 @@ window.OceanConfig = {
       "./assets/audio/test.ogg",
       "./assets/audio/test.wav",
     ],
+    contextResumeTimeout: 1200,
     sourceStartTimeout: 2200,
     playbackAdvanceTimeout: 1400,
     delayedAutoStart: true,

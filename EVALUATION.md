@@ -121,6 +121,7 @@ Current preference:
 - User reported the procedure working in Chrome and Brave desktop after the fallback file pass.
 - Temporarily enabled delayed auto-start so the browser gets a brief preload window before playback is attempted; gesture fallback remains active for browsers that block autoplay.
 - After mobile testing showed false `playing` status, added mobile-specific MP3/M4A-first ordering and a playback-time-advance check before declaring a source live.
+- After mobile stayed at `audio: starting` on `test.ogg`, bumped browser cache keys and added an audio-context resume timeout.
 
 Next diagnostic question:
 
