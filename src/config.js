@@ -42,15 +42,14 @@ window.OceanConfig = {
     enabled: true,
     // Keep filenames and real container formats matched for GitHub Pages MIME handling.
     sources: [
-      "./assets/audio/test.ogg",
       "./assets/audio/test.mp3",
       "./assets/audio/test.m4a",
+      "./assets/audio/test.ogg",
       "./assets/audio/test.wav",
     ],
     mobileSources: [
       "./assets/audio/test.mp3",
       "./assets/audio/test.m4a",
-      "./assets/audio/test.ogg",
       "./assets/audio/test.wav",
     ],
     contextResumeTimeout: 1200,
