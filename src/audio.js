@@ -13,7 +13,8 @@ function setupAudio() {
   audio.element.loop = true;
   audio.element.preload = "auto";
   audio.element.playsInline = true;
-  audio.sourceCandidates = getSupportedAudioSources(audio.element, AUDIO.sources);
+  audio.sourceMode = shouldPreferMobileAudioSources() ? "mobile" : "desktop";
+  audio.sourceCandidates = getSupportedAudioSources(audio.element, getPreferredAudioSources());
   audio.sourceStatus = audio.sourceCandidates.length > 0
     ? `ready: ${getSourceQueueLabel()}`
     : "no playable source";
@@ -109,6 +110,13 @@ function startCurrentAudioSource() {
     })
     .then(() => {
       if (attemptId !== audio.startAttemptId) {
+        return null;
+      }
+
+      return waitForPlaybackAdvance(AUDIO.playbackAdvanceTimeout, attemptId);
+    })
+    .then(() => {
+      if (attemptId !== audio.startAttemptId) {
         return;
       }
 
@@ -196,6 +204,44 @@ function waitForPlayStart(playPromise, timeoutMs, attemptId) {
         window.clearTimeout(timeout);
         reject(error);
       });
+  });
+}
+
+function waitForPlaybackAdvance(timeoutMs, attemptId) {
+  const audio = window.OceanState.audio;
+  const startTime = audio.element.currentTime || 0;
+  const startedAt = performance.now();
+
+  audio.lastPlaybackTime = startTime;
+  audio.status = "checking";
+
+  return new Promise((resolve, reject) => {
+    function check() {
+      if (attemptId !== audio.startAttemptId) {
+        resolve();
+        return;
+      }
+
+      const currentTime = audio.element.currentTime || 0;
+      audio.lastPlaybackTime = currentTime;
+
+      if (!audio.element.paused && currentTime > startTime + 0.05) {
+        resolve();
+        return;
+      }
+
+      if (performance.now() - startedAt >= timeoutMs) {
+        const error = new Error("playback stalled");
+
+        error.name = "playback stalled";
+        reject(error);
+        return;
+      }
+
+      requestAnimationFrame(check);
+    }
+
+    requestAnimationFrame(check);
   });
 }
 
@@ -287,6 +333,23 @@ function getSupportedAudioSources(element, sources) {
     });
 }
 
+function getPreferredAudioSources() {
+  const { AUDIO } = window.OceanConfig;
+
+  return shouldPreferMobileAudioSources() && AUDIO.mobileSources
+    ? AUDIO.mobileSources
+    : AUDIO.sources;
+}
+
+function shouldPreferMobileAudioSources() {
+  const userAgent = navigator.userAgent || "";
+  const platform = navigator.platform || "";
+  const hasTouch = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+
+  return /Android|iPhone|iPad|iPod/i.test(userAgent) ||
+    (platform === "MacIntel" && hasTouch);
+}
+
 function selectAudioSource() {
   const audio = window.OceanState.audio;
 
@@ -306,7 +369,7 @@ function selectAudioSource() {
   audio.currentSourceType = candidate.type;
   audio.element.src = candidate.src;
   audio.element.load();
-  audio.sourceStatus = `selected: ${getFileName(candidate.src)} (${audio.sourceCandidates.length} source${audio.sourceCandidates.length === 1 ? "" : "s"})`;
+  audio.sourceStatus = `selected: ${getFileName(candidate.src)} (${audio.sourceMode})`;
   return true;
 }
 

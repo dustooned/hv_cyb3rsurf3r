@@ -123,7 +123,7 @@ assets/audio/test.m4a
 assets/audio/test.wav
 ```
 
-The preferred order is OGG, MP3, M4A, then WAV. The loader filters that list through browser format support, gives the selected source a short preload delay, then attempts a delayed auto-start. If the browser blocks that autoplay attempt, the first real pointer/touch/click/key gesture remains the fallback. The loader falls through if a source fails or times out. The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, vector line color/width, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
+The desktop preferred order is OGG, MP3, M4A, then WAV. Mobile browsers use MP3, M4A, OGG, then WAV so iPad/Safari and Android do not choose OGG first just because newer browsers report support for it. The loader filters the active list through browser format support, gives the selected source a short preload delay, then attempts a delayed auto-start. If the browser blocks that autoplay attempt, the first real pointer/touch/click/key gesture remains the fallback. The loader falls through if a source fails, times out, or reports `play()` success without playback time advancing. The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, vector line color/width, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
 
 For GitHub Pages/browser testing, the file extension should match the real encoded container. Do not rename an M4A/AAC export to `.mp3`; create a true MP3 file for `test.mp3` and a separate true M4A file for `test.m4a`.
 
@@ -131,6 +131,7 @@ Current mobile audio diagnostic behavior as of April 25, 2026:
 
 - Chrome and Brave desktop testing worked after using the multi-format fallback procedure: keep the music files in `assets/audio`, match filenames to the configured source list, start from the browser-supported source, and verify `audio: playing` plus moving bass/treble/volume meters.
 - `AUDIO.delayedAutoStart` is temporarily enabled so the prototype waits briefly, then tries to start music on its own for quick browser/mobile visual tests.
+- Mobile source order now prefers `test.mp3` and `test.m4a` before `test.ogg`; debug text shows `selected: test.mp3 (mobile)` or `selected: test.ogg (desktop)`.
 - First pointer, touch, mouse, click, or key gesture calls audio start directly.
 - The debug readout reports the source queue and active source, for example `source: selected: test.ogg (4 sources)`, `source: trying: test.mp3`, or `source: playing: test.m4a`.
 - If a browser blocks autoplay, the debug readout should show `gesture needed: ...`; tap/click/press a key to retry from the same selected source.
