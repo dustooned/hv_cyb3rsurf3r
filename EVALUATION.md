@@ -122,6 +122,7 @@ Current preference:
 - Temporarily enabled delayed auto-start so the browser gets a brief preload window before playback is attempted; gesture fallback remains active for browsers that block autoplay.
 - After mobile testing showed false `playing` status, added mobile-specific MP3/M4A/WAV ordering and a playback-time-advance check before declaring a source live.
 - After mobile stayed at `audio: starting` on `test.ogg`, removed OGG from the mobile source list, bumped browser cache keys, and added an audio-context resume timeout.
+- Disabled delayed autoplay again after it caused sources to be consumed before reliable audio unlock; gesture-first is the current reliable baseline.
 
 Next diagnostic question:
 

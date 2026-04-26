@@ -140,6 +140,7 @@ Journal entry, April 25, 2026:
 - End-of-day audio test note: Chrome and Brave desktop playback worked with the multi-format fallback procedure and the debug meters moving. `AUDIO.delayedAutoStart` is temporarily enabled so the page waits briefly after load and then tries to start music automatically; if the browser reports `NotAllowedError`, the debug text changes to `gesture needed` and the existing click/touch/key path remains the retry.
 - Mobile follow-up: iPad Safari and Android can report OGG support while still not producing audible playback. The active loader now uses a mobile-specific order of MP3, M4A, WAV only and reports `playing` only after playback time advances.
 - Cache/resume follow-up: bumped `index.html` script query strings to `mobile-audio-fallback-014`, broadened mobile detection to coarse-pointer small screens, and added an `AudioContext.resume()` timeout so mobile cannot stay stuck at `audio: starting` forever.
+- Autoplay rollback: disabled `AUDIO.delayedAutoStart` and bumped scripts to `mobile-audio-fallback-015` after autoplay attempts caused desktop/mobile to burn through sources and stop at M4A. Audio should start from a real gesture again.
 
 ## Next Chat Starter
 

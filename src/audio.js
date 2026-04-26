@@ -140,7 +140,7 @@ function startCurrentAudioSource() {
       audio.isStarting = false;
       audio.isReady = false;
       audio.status = error && error.name ? error.name : "play blocked";
-      audio.sourceStatus = error && error.name === "NotAllowedError"
+      audio.sourceStatus = isGestureBlockedError(error)
         ? `gesture needed: ${getFileName(audio.currentSource)}`
         : `blocked: ${getFileName(audio.currentSource)}`;
     });
@@ -192,11 +192,18 @@ function scheduleDelayedAutoStart() {
 }
 
 function shouldTryNextAudioSource(error) {
-  if (error && error.name === "NotAllowedError") {
+  if (isGestureBlockedError(error)) {
     return false;
   }
 
   return true;
+}
+
+function isGestureBlockedError(error) {
+  return error && (
+    error.name === "NotAllowedError" ||
+    error.name === "context resume timeout"
+  );
 }
 
 function waitForPlayStart(playPromise, timeoutMs, attemptId) {
