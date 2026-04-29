@@ -21,7 +21,7 @@ Current features:
 - Fast retargetable arcade timing: 38ms lane switches, 45ms hold pulses, ease-out motion, and mid-switch direction correction.
 - Readable boost and slow terrain zones color the main grid and change forward ocean/world speed.
 - Yellow timing targets grant a short high-speed boost when lane alignment and Space timing are correct.
-- Optional local audio playback drives visual-only grid, terrain, and wave reactivity. The current source order is `test.ogg`, `test.mp3`, `test.m4a`, then `test.wav`, so desktop keeps the real music track while mobile can fall through to MP3/M4A/WAV.
+- Optional local audio playback drives visual-only grid, terrain, and wave reactivity. The current source order is `test.ogg`, `test.mp3`, `test.m4a`, then `test.wav` on non-Safari desktop, while Safari and mobile use MP3/M4A/WAV fallbacks.
 - Audio/FPS debug readout shows playback status, attempted/playing source, bass/treble/volume, FPS, adaptive glow scale, and vector/mobile render mode.
 - Performance protection caps Canvas pixel ratio and keeps expensive Canvas shadow/glow effects disabled by default. Mobile stroke-count reduction remains available behind a config flag, but full vector line density is the default.
 
@@ -69,6 +69,7 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `versions/v010-centered-surfboard-audio-grid-baseline` preserves the current centered-surfboard and full-grid audio response baseline before the next adjustment pass.
 - `versions/v011-audio-performance-diagnostic-baseline` preserves the current audio-start and performance diagnostic pass before deeper mobile/iPad fixes.
 - `versions/v012-pure-vector-render-safety` preserves the current corrected pure-vector render baseline with OGG-first audio, mobile fallbacks, and shadow/glow/stroke-reduction bottlenecks disabled by default.
+- `versions/v013-obstacle-wave-design-baseline` preserves the current baseline before designing classified obstacle size/speed parameters, center-vertex vector markers, color coding, and row/column-specific wave generation.
 
 ## Main Tuning Points
 
@@ -81,6 +82,8 @@ Edit `src/config.js` first when tuning behavior.
 - `TERRAIN.nearHorizonDepth`: first depth where terrain color is allowed to appear.
 - `TERRAIN.foregroundFadeRows`: number of rows before the surfboard rail used to fade terrain out.
 - `TERRAIN.patches`: readable abstract terrain definitions.
+- Future obstacle tuning should start near the terrain model: type/classification, lane or column span, row/depth span, speed effect, color, and a lightweight center-vertex marker shape.
+- Future wave masking should stay data-driven: explicit rows, columns, or cell ranges can opt into stronger constant wave generation while other grid regions remain calmer or flat.
 - `TIMING.*`: yellow timing target size, hit window, boost multiplier, cooldown, and respawn pacing.
 - `AUDIO.*`: test audio sources, analyzer resolution, smoothing, wave response, shimmer, and glow intensity.
 - `PERFORMANCE.*`: pixel-ratio caps, shadow/glow toggles, optional mobile stroke reduction, and FPS/debug readout controls.
@@ -106,6 +109,17 @@ Current rules:
 - The wave height remains visual-only; terrain speed is tracked separately in `OceanState.world`.
 - Scoring, collision, timer, and destination UI are still intentionally deferred.
 
+## Obstacle And Wave Design Baseline
+
+`v013-obstacle-wave-design-baseline` is the setup checkpoint for the next design pass. No new obstacle runtime has been added yet. The intended direction is:
+
+- Keep obstacle data lightweight and readable before adding collision or scoring.
+- Classify obstacles by type first, then tune size, speed effect, color, and marker shape.
+- Attach placeholder vector graphics to the center point of a grid square/cell, not to arbitrary screen coordinates.
+- Use color as a redundant classification signal alongside shape, so obstacle meaning remains readable at speed.
+- Let the user define rows, columns, and placeholder marker types one step at a time.
+- Explore constant wave generation as a grid mask: some rows/columns can have persistent wave motion while other regions remain quiet, without changing the whole grid.
+
 ## Audio Reactivity
 
 The project includes a small generated mobile-safe test WAV at:
@@ -123,16 +137,18 @@ assets/audio/test.m4a
 assets/audio/test.wav
 ```
 
-The current diagnostic order is OGG, MP3, M4A, then WAV on desktop, and MP3, M4A, then WAV on mobile. OGG is temporarily removed from the mobile list because iPad/Safari and Android can report support but still stall without audible playback. The loader filters the active list through browser format support and starts from the first real pointer/touch/click/key gesture. The loader falls through if a source fails, times out, or reports `play()` success without playback time advancing. The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, vector line color/width, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
+The current diagnostic order is OGG, MP3, M4A, then WAV on non-Safari desktop; MP3, M4A, then WAV on mobile; and MP3, M4A, then WAV on Safari. OGG is removed from mobile and Safari-specific source lists because those browsers can report support but still stall without audible playback. The loader filters the active list through browser format support and starts from the first real pointer/touch/click/key gesture. The loader falls through if a source fails, times out, reports `play()` success without playback time advancing, or stalls after playback has started. The current audio pass is visual-only. A single mixed track is analyzed into bass, treble, volume, and short transient hit values. Those values affect full-grid vertex lift, vector line color/width, terrain pulse, and wave shimmer. Terrain generation and yellow target timing are not music-driven yet.
 
 For GitHub Pages/browser testing, the file extension should match the real encoded container. Do not rename an M4A/AAC export to `.mp3`; create a true MP3 file for `test.mp3` and a separate true M4A file for `test.m4a`.
 
-Current mobile audio diagnostic behavior as of April 25, 2026:
+Current audio diagnostic behavior as of April 28, 2026:
 
 - Chrome and Brave desktop testing worked after using the multi-format fallback procedure: keep the music files in `assets/audio`, match filenames to the configured source list, start from the browser-supported source, and verify `audio: playing` plus moving bass/treble/volume meters.
-- `AUDIO.delayedAutoStart` is disabled again because mobile autoplay attempts can leave the audio context locked and burn through the fallback list before a real gesture.
+- Desktop keeps OGG-first source priority so the desktop music reaction uses `test.ogg` when available.
+- Desktop Safari uses the Safari fallback list, so it starts from `test.mp3` instead of OGG.
+- `AUDIO.delayedAutoStart` is disabled because mobile autoplay attempts can leave the audio context locked and burn through the fallback list before a real gesture.
 - Mobile source order now uses `test.mp3`, `test.m4a`, then `test.wav`; debug text should show `selected: test.mp3 (mobile)`.
-- The script cache-buster is `mobile-audio-fallback-015`; if a phone still shows `trying: test.ogg`, it is running an older deployed or cached script.
-- First pointer, touch, mouse, click, or key gesture calls audio start directly.
-- The debug readout reports the source queue and active source, for example `source: selected: test.ogg (4 sources)`, `source: trying: test.mp3`, or `source: playing: test.m4a`.
+- The script cache-buster is `safari-audio-stall-016`; if a phone or Safari browser still shows `trying: test.ogg`, it is running an older deployed or cached script.
+- First pointer, touch, mouse, click, or key gesture calls audio start directly. This gesture-first path is the current reliable baseline.
+- The debug readout reports the source queue and active source, for example `source: selected: test.ogg (desktop)`, `source: selected: test.mp3 (mobile)`, or `source: playing: test.m4a`.
 - If a browser blocks autoplay, the debug readout should show `gesture needed: ...`; tap/click/press a key to retry from the same selected source.

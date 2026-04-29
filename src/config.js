@@ -8,7 +8,7 @@ window.OceanConfig = {
   },
 
   TERRAIN: {
-    enabled: true,
+    enabled: false,
     baseWorldSpeed: 0.00012,
     boostMultiplier: 1.55,
     slowMultiplier: 0.64,
@@ -18,16 +18,75 @@ window.OceanConfig = {
     nearHorizonDepth: 0.17,
     // Fade terrain out across the last rows before the surfboard rail.
     foregroundFadeRows: 2,
-    patches: [
-      { id: "boost-a", type: "boost", laneCenter: 5, laneRadius: 2.8, start: 0.12, length: 0.24, seed: 11 },
-      { id: "slow-a", type: "slow", laneCenter: 13, laneRadius: 3.1, start: 0.32, length: 0.22, seed: 23 },
-      { id: "boost-b", type: "boost", laneCenter: 10, laneRadius: 2.6, start: 0.57, length: 0.21, seed: 37 },
-      { id: "slow-b", type: "slow", laneCenter: 6, laneRadius: 2.9, start: 0.78, length: 0.2, seed: 51 },
+    patches: [],
+  },
+
+  OBSTACLES: {
+    enabled: true,
+    // Markers attach to cell centers.
+    // cellCol is 0..GRID.cols - 2. cellRow is 0..GRID.rows - 2.
+    centerAnchor: "cell-center",
+    classes: [
+      {
+        type: "seaweed",
+        name: "Seaweed",
+        visual: {
+          color: "#00FF1D",
+          tileSpan: { cols: 2, rows: 2 },
+          vertexFootprint: { cols: 3, rows: 3, total: 9 },
+          markerShape: "checkerboard",
+        },
+        terrainEffect: { kind: "speed-multiplier", value: 0.33 },
+        timing: { enabled: false },
+        collision: { enabled: true, effect: "slow" },
+        functionNote: "Slows current world speed to one third.",
+      },
+      {
+        type: "tide",
+        name: "Tide",
+        visual: {
+          color: "#FF5AEA",
+          tileSpan: { cols: 2, rows: 3 },
+          vertexFootprint: { cols: 3, rows: 4, total: 12 },
+          markerShape: "tide-band",
+        },
+        terrainEffect: { kind: "speed-multiplier", value: 1.5 },
+        timing: { enabled: false },
+        collision: { enabled: true, effect: "speed-up" },
+        functionNote: "Increases current world speed by 50%.",
+      },
+      {
+        type: "jumpwave",
+        name: "Jumpwave",
+        visual: {
+          color: "#D4C800",
+          tileSpan: { cols: 1, rows: 4 },
+          vertexFootprint: { cols: 2, rows: 5, total: 10 },
+          markerShape: "vertical-wave",
+        },
+        terrainEffect: { kind: "timed-speed-multiplier", value: 3, duration: 900 },
+        timing: { enabled: true, input: "Space", rowWindow: 1, laneWindow: 0.55 },
+        collision: { enabled: true, effect: "jump-shift" },
+        jumpEffect: {
+          maxColumnHop: 4,
+          liftPixels: 46,
+          liftDuration: 120,
+          hangDuration: 160,
+          landDuration: 260,
+          bouncePixels: 8,
+        },
+        functionNote: "Increases speed by 200% and later moves the player over four columns.",
+      },
+    ],
+    placements: [
+      { id: "seaweed-a", type: "seaweed", cellCol: 3, cellRow: 7 },
+      { id: "tide-a", type: "tide", cellCol: 9, cellRow: 5 },
+      { id: "jumpwave-a", type: "jumpwave", cellCol: 15, cellRow: 4 },
     ],
   },
 
   TIMING: {
-    enabled: true,
+    enabled: false,
     targetLaneRadius: 0.5,
     targetDepthSize: 0.075,
     hitWindowDepth: 0.045,
@@ -52,9 +111,15 @@ window.OceanConfig = {
       "./assets/audio/test.m4a",
       "./assets/audio/test.wav",
     ],
+    safariSources: [
+      "./assets/audio/test.mp3",
+      "./assets/audio/test.m4a",
+      "./assets/audio/test.wav",
+    ],
     contextResumeTimeout: 1200,
     sourceStartTimeout: 2200,
     playbackAdvanceTimeout: 1400,
+    playbackStallTimeout: 2400,
     delayedAutoStart: false,
     autoStartDelay: 1600,
     fftSize: 1024,

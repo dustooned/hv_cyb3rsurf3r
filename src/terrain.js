@@ -7,10 +7,10 @@ function updateTerrain(time) {
 
   if (!TERRAIN.enabled) {
     state.terrain.visiblePatches = [];
-    state.world.speedMultiplier = 1;
-    state.world.activeTerrainType = "neutral";
-    state.world.activePatchId = null;
-    state.world.targetSpeed = TERRAIN.baseWorldSpeed;
+    state.world.speedMultiplier = state.obstacles.speedMultiplier;
+    state.world.activeTerrainType = state.obstacles.activeId ? state.obstacles.activeType : "neutral";
+    state.world.activePatchId = state.obstacles.activeId;
+    state.world.targetSpeed = TERRAIN.baseWorldSpeed * state.world.speedMultiplier;
     state.world.currentSpeed += (state.world.targetSpeed - state.world.currentSpeed) * TERRAIN.speedEase;
     advanceWorldProgress(time);
     return;
@@ -45,13 +45,17 @@ function updateWorldSpeedFromTerrain(TERRAIN) {
     multiplier = window.OceanConfig.TIMING.perfectBoostMultiplier;
   }
 
+  multiplier *= state.obstacles.speedMultiplier;
+
   state.world.speedMultiplier = multiplier;
   state.world.activeTerrainType = window.OceanTiming.isBoostActive()
     ? "timing-boost"
-    : activePatch
+    : state.obstacles.activeId
+      ? state.obstacles.activeType
+      : activePatch
       ? activePatch.type
       : "neutral";
-  state.world.activePatchId = activePatch ? activePatch.id : null;
+  state.world.activePatchId = state.obstacles.activeId || (activePatch ? activePatch.id : null);
   state.world.targetSpeed = TERRAIN.baseWorldSpeed * multiplier;
   state.world.currentSpeed += (state.world.targetSpeed - state.world.currentSpeed) * TERRAIN.speedEase;
 }

@@ -29,7 +29,7 @@ No npm install is required for the current browser path.
 - Boost and slow terrain zones rendered as colored main-grid lines in the lofi active version.
 - Terrain sampling that changes forward ocean/world speed without adding scoring, collision, timer, or destination logic.
 - Yellow timing targets that grant a short high-speed boost when the surfer is lane-aligned and Space is pressed at the rail gate.
-- Optional local audio analysis that drives visual-only wave height, terrain pulse, shimmer, and vector line response. The active source order starts with `assets/audio/test.ogg`, then allows `test.mp3`, `test.m4a`, and checked-in `test.wav`.
+- Optional local audio analysis that drives visual-only wave height, terrain pulse, shimmer, and vector line response. Non-Safari desktop keeps `assets/audio/test.ogg` first, while Safari and mobile use MP3/M4A/WAV fallback lists.
 - Audio/FPS debug readout showing playback status, source status, bass/treble/volume, FPS, adaptive glow scale, and vector/mobile render mode.
 - Performance safeguards that cap Canvas pixel ratio and keep expensive Canvas shadows/glow disabled by default. Mobile stroke-count reduction is still available behind a config flag, but full vector line density is the default.
 
@@ -82,6 +82,7 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 - `v010-centered-surfboard-audio-grid-baseline`: current checkpoint with full-grid audio visual response, reduced automatic wave amplitude, and a surfboard centered on the projected rail dot.
 - `v011-audio-performance-diagnostic-baseline`: current checkpoint with responsive board scaling, audio-start diagnostics, FPS/glow readout, and mobile/iPad issue notes before deeper compatibility work.
 - `v012-pure-vector-render-safety`: current corrected checkpoint with OGG-first audio restored, mobile fallbacks retained, and Canvas shadows/glow/stroke-reduction bottlenecks disabled by default.
+- `v013-obstacle-wave-design-baseline`: current planning checkpoint before adding classified obstacle size/speed parameters, center-vertex vector markers, color coding, and selective row/column wave generation.
 
 ## Lessons Learned
 
@@ -93,7 +94,7 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 - Visual anchor dots on the front rail help debug lane feel and player position.
 - Committed lane switches can feel like recoil when reversing direction; retargeting from the current visual lane feels better.
 - `easeOut` makes lane correction feel faster and less sticky than the earlier ease-in-out switch.
-- OGG-first audio keeps the desktop music reaction, while MP3/M4A/WAV remain fallback options for mobile browsers.
+- OGG-first audio keeps the non-Safari desktop music reaction, while MP3/M4A/WAV remain fallback options for Safari and mobile browsers.
 - The current pure-vector safety pass keeps Canvas shadows/glow disabled by default and does not skip grid/decor lines unless `PERFORMANCE.enableMobileStrokeReduction` is manually enabled.
 
 ## Recommended Next Steps
@@ -108,7 +109,9 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 6. Keep terrain readable through the grid line language before adding new visual systems.
 7. Test `v012-pure-vector-render-safety` on desktop and iPad/mobile before re-enabling any shadows, glow, or stroke-count reduction.
 8. If FPS is still low in pure-vector mode, tune geometry/path complexity carefully without skipping visible grid lines by default.
-9. Save another version snapshot before adding collision, timer, scoring, or destination logic.
+9. Start the obstacle pass with data-only definitions before adding collision, timer, scoring, or destination logic.
+10. Define obstacle classes by size, speed effect, color, and center-cell vector marker.
+11. Define row/column wave masks so constant waves can exist in specific grid regions and stay absent elsewhere.
 
 ## Current Terrain Prototype
 
@@ -121,6 +124,16 @@ Terrain is intentionally separate from wave height:
 - `src/timing.js` draws the yellow target cell and rail gate, then overrides world speed during successful timing boosts.
 - `src/audio.js` analyzes one mixed track from local audio sources; current audio values affect visuals only, not terrain generation or timing spawns.
 - No scoring, collision, timer, destination, or failure states have been added.
+
+## Obstacle And Wave Design Baseline
+
+This checkpoint is for planning the next lightweight grid-system layer:
+
+- Obstacle definitions should live as data first, likely near or beside terrain data, with explicit `type`, lane/column range, row/depth range, speed effect, color, and marker shape fields.
+- Center-vertex or center-cell markers should be projected from grid geometry, so placeholder vector graphics stay attached to the grid instead of floating in screen space.
+- Color coding should reinforce obstacle classification but should not be the only readable signal.
+- Constant wave generation should become a mask or rule set by row/column/cell range, allowing active wave bands in some areas and calm grid regions in others.
+- Keep collision, scoring, destination, and timer systems deferred until obstacle placement and readability are proven.
 
 ## Current Diagnostic Notes
 
@@ -136,11 +149,13 @@ Journal entry, April 25, 2026:
 - Added performance controls: Canvas pixel ratio cap, adaptive glow scale, and lower-detail decorative paths when performance drops.
 - Verified in the in-app Chromium browser that key/click can start audio and show moving meters, but user still reports Chrome/Brave and iPad/mobile startup trouble.
 - Current rendering fix: checked-in `test.wav` remains as a mobile fallback, but `test.ogg` is preferred again for desktop music reaction. Canvas shadows/glow and automatic stroke-count reduction are disabled by default to keep the picture purely vectorized and stable.
-- Current audio fallback fix: keep one mixed track exported as `test.ogg`, `test.mp3`, `test.m4a`, and `test.wav`. The loader keeps OGG first, filters playable formats, starts from the first user gesture, and falls through on source failure or a short startup timeout.
-- End-of-day audio test note: Chrome and Brave desktop playback worked with the multi-format fallback procedure and the debug meters moving. `AUDIO.delayedAutoStart` is temporarily enabled so the page waits briefly after load and then tries to start music automatically; if the browser reports `NotAllowedError`, the debug text changes to `gesture needed` and the existing click/touch/key path remains the retry.
+- Current audio fallback fix: keep one mixed track exported as `test.ogg`, `test.mp3`, `test.m4a`, and `test.wav`. The loader keeps OGG first on desktop, uses MP3/M4A/WAV on mobile, filters playable formats, starts from the first user gesture, and falls through on source failure or a short startup timeout.
+- End-of-day audio test note: Chrome and Brave desktop playback worked with the multi-format fallback procedure and the debug meters moving. `AUDIO.delayedAutoStart` was tested and then disabled because autoplay attempts caused browsers to burn through fallback sources before a reliable gesture unlock.
 - Mobile follow-up: iPad Safari and Android can report OGG support while still not producing audible playback. The active loader now uses a mobile-specific order of MP3, M4A, WAV only and reports `playing` only after playback time advances.
 - Cache/resume follow-up: bumped `index.html` script query strings to `mobile-audio-fallback-014`, broadened mobile detection to coarse-pointer small screens, and added an `AudioContext.resume()` timeout so mobile cannot stay stuck at `audio: starting` forever.
-- Autoplay rollback: disabled `AUDIO.delayedAutoStart` and bumped scripts to `mobile-audio-fallback-015` after autoplay attempts caused desktop/mobile to burn through sources and stop at M4A. Audio should start from a real gesture again.
+- Final working baseline for now: `AUDIO.delayedAutoStart` is `false`, script cache key is `mobile-audio-fallback-015`, desktop source order is OGG/MP3/M4A/WAV, mobile source order is MP3/M4A/WAV, and audio starts from a real tap/click/key gesture.
+- Safari desktop follow-up, April 28, 2026: added a Safari-specific MP3/M4A/WAV source list, a mid-playback stall watchdog, and script cache key `safari-audio-stall-016`.
+- Version setup, April 28, 2026: saved `v013-obstacle-wave-design-baseline` before beginning obstacle parameter and selective wave-mask design.
 
 ## Next Chat Starter
 
@@ -153,7 +168,7 @@ Please read README.md, HANDOFF.md, and EVALUATION.md first. The current app runs
 
 Current direction: lofi Tempest-like vector ocean, lane-rail surfboard controls, front anchor dots, ease-out retarget movement, centered responsive surfboard art, full-grid audio-reactive visuals, and readable boost/slow terrain shown as colored grid lines that modulate forward world speed.
 
-Current checkpoint: v012-pure-vector-render-safety.
+Current checkpoint: v013-obstacle-wave-design-baseline.
 
-Next task: test the pure-vector safety baseline first. Keep `PERFORMANCE.enableCanvasShadows`, `PERFORMANCE.enableAudioGlow`, and `PERFORMANCE.enableMobileStrokeReduction` false unless deliberately experimenting. Preserve OGG-first music reaction with MP3/M4A/WAV fallback. If more performance work is needed, tune vector geometry/path complexity without default line skipping, and do not change terrain generation, yellow target timing, scoring, collision, timer, or destination logic yet.
+Next task: design obstacle and wave parameters one step at a time. Start with data definitions for obstacle classes: size, speed effect, color, lane/column span, row/depth span, and a placeholder vector marker attached to the center of a grid cell. Then define which rows/columns should receive constant wave generation and which should stay calm. Keep `PERFORMANCE.enableCanvasShadows`, `PERFORMANCE.enableAudioGlow`, and `PERFORMANCE.enableMobileStrokeReduction` false unless deliberately experimenting. Preserve the gesture-first audio fallback path and do not add scoring, collision, timer, or destination logic yet.
 ```

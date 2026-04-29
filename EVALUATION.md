@@ -43,6 +43,9 @@ What needs more evaluation:
 - Whether wave geometry should affect movement, hazards, or scoring.
 - Whether the dashed terrain sample line is the right depth cue or should become invisible/debug-only.
 - Whether terrain patch size and speed multipliers are readable during normal lane movement.
+- Which obstacle classes need distinct size, speed, color, and marker-shape parameters.
+- Whether center-cell vector placeholders stay readable when attached to projected grid geometry.
+- Which rows and columns should carry constant wave generation, and which areas should remain calm.
 - Whether full-grid audio response should be more line-glow-driven and less vertex-height-driven.
 - Whether the audio debug readout should stay as a tuning overlay or become hidden after diagnostics.
 - Whether the first mobile performance-mode stride values reduce iPad stroke/path cost enough without losing too much grid readability.
@@ -123,11 +126,19 @@ Current preference:
 - After mobile testing showed false `playing` status, added mobile-specific MP3/M4A/WAV ordering and a playback-time-advance check before declaring a source live.
 - After mobile stayed at `audio: starting` on `test.ogg`, removed OGG from the mobile source list, bumped browser cache keys, and added an audio-context resume timeout.
 - Disabled delayed autoplay again after it caused sources to be consumed before reliable audio unlock; gesture-first is the current reliable baseline.
+- Final result for this pass: desktop keeps OGG-first music reaction, mobile uses MP3/M4A/WAV only, and the prototype reliably starts audio after one real tap/click/key gesture.
+
+### 2026-04-28 - Safari Audio Stall And v013 Setup
+
+- Added a Safari-specific MP3/M4A/WAV source list so desktop Safari does not enter the OGG-first path.
+- Added a playback health watchdog so a source that starts and then stops advancing can fall through instead of staying falsely marked as playing.
+- Saved `v013-obstacle-wave-design-baseline` before adding new obstacle or wave-mask runtime behavior.
+- The next design pass should focus on obstacle class data, center-cell vector placeholder markers, color coding, and row/column wave masks.
 
 Next diagnostic question:
 
 ```text
-Can a mobile-safe MP3/M4A source plus a direct first-touch unlock make audio reliable on iPad/Chrome/Brave, and how much visual stroke count must be removed for iPad FPS?
+After the gesture-first fallback is deployed, do iPad Safari and Android show `selected: test.mp3 (mobile)` and moving bass/treble/volume meters after one tap?
 ```
 
 ## Next Evaluation Question
@@ -135,17 +146,16 @@ Can a mobile-safe MP3/M4A source plus a direct first-touch unlock make audio rel
 The next major design question is:
 
 ```text
-How does terrain on the ocean grid affect forward progress?
+How should classified obstacles and selective wave bands sit on top of the terrain grid?
 ```
 
 Current answer to test next:
 
-- The player is trying to reach a destination before time runs out.
-- Terrain changes the forward ocean/world speed.
-- Boost terrain increases progress speed.
-- Slow terrain reduces progress speed.
-- Terrain should be color-classified and shape-classified so the player can read it quickly.
-- Wave height should stay visual-only until terrain rules are clearer.
+- Obstacle classes should be data-first: size, speed effect, color, marker shape, lane/column span, and row/depth span.
+- Placeholder vector graphics should attach to the projected center of a grid cell.
+- Color should reinforce the class, but shape should carry meaning too.
+- Constant wave generation should be allowed in selected rows/columns/cells while other grid areas remain calm.
+- Collision, scoring, timer, and destination rules should wait until obstacle readability is proven.
 
 ## Terrain Design Notes
 
@@ -180,3 +190,5 @@ Next evaluation:
 - Confirm whether players understand that chevrons mean faster and pools mean slower without text.
 - Tune `TERRAIN.sampleDepth` so the speed change happens when the board visually feels like it has entered terrain.
 - Decide whether the dashed probe line should become a styled game marker, a debug toggle, or hidden.
+- Decide the first two or three obstacle classes and their placeholder marker shapes.
+- Choose the first row/column ranges for testing constant wave bands.

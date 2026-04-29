@@ -39,7 +39,12 @@ function handleKeyDown(event) {
     event.preventDefault();
 
     if (!event.repeat) {
-      window.OceanTiming.requestTimingTap(performance.now());
+      const now = performance.now();
+      const obstacleHandled = window.OceanObstacles.requestObstacleAction(now);
+
+      if (!obstacleHandled) {
+        window.OceanTiming.requestTimingTap(now);
+      }
     }
   }
 }

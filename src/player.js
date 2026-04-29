@@ -109,7 +109,7 @@ function drawPlayer(time) {
   const halfWidth = PLAYER.halfWidth * artScale;
   const length = PLAYER.length * artScale;
   const centerX = boardPosition.x;
-  const boardCenterY = boardPosition.y;
+  const boardCenterY = boardPosition.y + getPlayerJumpOffset(time);
   const boardTopY = -length * 0.54;
   const boardBottomY = length * 0.46;
   const boardMidY = 0;
@@ -176,6 +176,34 @@ function getPlayerBoardPosition() {
     x: lerp(leftPoint.x, rightPoint.x, laneBlend),
     y: lerp(leftPoint.y, rightPoint.y, laneBlend),
   };
+}
+
+function getPlayerJumpOffset(time) {
+  const player = window.OceanState.player;
+  const liftDuration = player.jumpLiftDuration;
+  const hangDuration = player.jumpHangDuration;
+  const landDuration = player.jumpLandDuration;
+  const totalDuration = liftDuration + hangDuration + landDuration;
+  const jumpAge = time - player.jumpStartedAt;
+
+  if (player.jumpStartedAt === 0 || jumpAge < 0 || jumpAge > totalDuration) {
+    return 0;
+  }
+
+  if (jumpAge <= liftDuration) {
+    const liftProgress = jumpAge / Math.max(1, liftDuration);
+
+    return -player.jumpLiftPixels * easeOutCubic(liftProgress);
+  }
+
+  if (jumpAge <= liftDuration + hangDuration) {
+    return -player.jumpLiftPixels;
+  }
+
+  const landProgress = (jumpAge - liftDuration - hangDuration) / Math.max(1, landDuration);
+  const landingEase = easeOutBack(Math.min(1, landProgress));
+
+  return -player.jumpLiftPixels + player.jumpLiftPixels * landingEase;
 }
 
 function getPlayerArtScale() {
@@ -278,8 +306,9 @@ function clampLane(lane) {
   const { PLAYER, GRID } = window.OceanConfig;
   const maxLane = Math.min(PLAYER.maxLane, GRID.cols - 1);
   const minLane = Math.max(PLAYER.minLane, 0);
+  const jumpClampedLane = window.OceanObstacles.clampLaneForJump(lane);
 
-  return Math.max(minLane, Math.min(maxLane, lane));
+  return Math.max(minLane, Math.min(maxLane, jumpClampedLane));
 }
 
 function easeLane(t, easingType) {
@@ -288,6 +317,19 @@ function easeLane(t, easingType) {
   }
 
   return t * t * (3 - 2 * t);
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function easeOutBack(t) {
+  const player = window.OceanState.player;
+  const overshoot = player.jumpBouncePixels / Math.max(1, player.jumpLiftPixels);
+  const c1 = 1.7 + overshoot * 2.2;
+  const c3 = c1 + 1;
+
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 }
 
 function lerp(a, b, t) {

@@ -23,6 +23,17 @@ window.OceanState = {
     visiblePatches: [],
   },
 
+  obstacles: {
+    activeId: null,
+    activeType: "none",
+    speedMultiplier: 1,
+    jumpBoostUntil: 0,
+    jumpLaneStart: null,
+    jumpMaxColumnHop: 0,
+    feedbackId: null,
+    feedbackUntil: 0,
+  },
+
   performance: {
     lastFrameTime: 0,
     frameMs: 16.7,
@@ -66,6 +77,8 @@ window.OceanState = {
     startAttemptId: 0,
     hasTriedAutoStart: false,
     lastPlaybackTime: 0,
+    lastPlaybackCheckAt: 0,
+    lastPlaybackAdvanceAt: 0,
     bass: 0,
     treble: 0,
     volume: 0,
@@ -90,5 +103,11 @@ window.OceanState = {
     isMovingLane: false,
     previousLane: window.OceanConfig.PLAYER.startingLane,
     tilt: 0,
+    jumpStartedAt: 0,
+    jumpLiftPixels: 0,
+    jumpLiftDuration: 0,
+    jumpHangDuration: 0,
+    jumpLandDuration: 0,
+    jumpBouncePixels: 0,
   },
 };

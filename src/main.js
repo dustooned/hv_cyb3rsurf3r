@@ -12,6 +12,7 @@ function animate(time) {
   updatePerformance(time);
   window.OceanAudio.updateAudio();
   window.OceanTiming.updateTiming(time);
+  window.OceanObstacles.updateObstacles(time);
   window.OceanTerrain.updateTerrain(time);
   window.OceanWave.updateWave(time);
   window.OceanGrid.projectGrid();
@@ -20,6 +21,7 @@ function animate(time) {
   window.OceanDecor.drawDecorativeGrid(time);
   window.OceanGrid.drawGrid();
   window.OceanTiming.drawTiming(time);
+  window.OceanObstacles.drawObstacles(time);
   window.OceanPlayer.drawPlayer(time);
   window.OceanAudio.drawAudioDebug();
 

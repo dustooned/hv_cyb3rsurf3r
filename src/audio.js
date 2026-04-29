@@ -13,7 +13,7 @@ function setupAudio() {
   audio.element.loop = true;
   audio.element.preload = "auto";
   audio.element.playsInline = true;
-  audio.sourceMode = shouldPreferMobileAudioSources() ? "mobile" : "desktop";
+  audio.sourceMode = getAudioSourceMode();
   audio.sourceCandidates = getSupportedAudioSources(audio.element, getPreferredAudioSources());
   audio.sourceStatus = audio.sourceCandidates.length > 0
     ? `ready: ${getSourceQueueLabel()}`
@@ -39,6 +39,19 @@ function setupAudio() {
   audio.element.addEventListener("canplay", () => {
     if (!audio.isReady) {
       audio.status = "press key/click";
+    }
+  });
+
+  audio.element.addEventListener("waiting", () => {
+    if (audio.isReady) {
+      audio.status = "buffering";
+    }
+  });
+
+  audio.element.addEventListener("playing", () => {
+    if (audio.isReady) {
+      audio.status = "playing";
+      audio.lastPlaybackAdvanceAt = performance.now();
     }
   });
 
@@ -98,6 +111,8 @@ function startCurrentAudioSource() {
   const attemptId = audio.startAttemptId + 1;
 
   audio.startAttemptId = attemptId;
+  audio.hasError = false;
+  audio.isStarting = true;
   audio.sourceStatus = `trying: ${getFileName(audio.currentSource)} (${audio.sourceMode})`;
   waitForAudioContextResume(audio.context.resume(), AUDIO.contextResumeTimeout)
     .then(() => {
@@ -124,6 +139,9 @@ function startCurrentAudioSource() {
       audio.isStarting = false;
       audio.status = "playing";
       audio.sourceStatus = `playing: ${getFileName(audio.currentSource)}`;
+      audio.lastPlaybackTime = audio.element.currentTime || 0;
+      audio.lastPlaybackCheckAt = performance.now();
+      audio.lastPlaybackAdvanceAt = audio.lastPlaybackCheckAt;
     })
     .catch((error) => {
       if (attemptId !== audio.startAttemptId) {
@@ -278,12 +296,15 @@ function waitForPlaybackAdvance(timeoutMs, attemptId) {
 }
 
 function updateAudio() {
+  const { AUDIO } = window.OceanConfig;
   const audio = window.OceanState.audio;
 
   if (!audio.isReady || !audio.analyser || !audio.frequencyData) {
     easeAudioValuesToRest();
     return;
   }
+
+  monitorPlaybackHealth(AUDIO);
 
   audio.analyser.getByteFrequencyData(audio.frequencyData);
 
@@ -304,6 +325,45 @@ function updateAudio() {
   if (audio.isReady && audio.status !== "playing") {
     audio.status = "playing";
   }
+}
+
+function monitorPlaybackHealth(AUDIO) {
+  const audio = window.OceanState.audio;
+  const currentTime = audio.element.currentTime || 0;
+  const now = performance.now();
+
+  if (audio.element.paused || audio.isStarting) {
+    audio.lastPlaybackTime = currentTime;
+    audio.lastPlaybackCheckAt = now;
+    audio.lastPlaybackAdvanceAt = now;
+    return;
+  }
+
+  if (currentTime > audio.lastPlaybackTime + 0.02 || currentTime < audio.lastPlaybackTime) {
+    audio.lastPlaybackTime = currentTime;
+    audio.lastPlaybackCheckAt = now;
+    audio.lastPlaybackAdvanceAt = now;
+    return;
+  }
+
+  audio.lastPlaybackCheckAt = now;
+
+  if (now - audio.lastPlaybackAdvanceAt < AUDIO.playbackStallTimeout) {
+    return;
+  }
+
+  audio.isReady = false;
+  audio.status = "playback stalled";
+
+  if (tryNextAudioSource()) {
+    audio.isStarting = true;
+    startCurrentAudioSource();
+    return;
+  }
+
+  audio.hasError = true;
+  audio.isStarting = false;
+  audio.sourceStatus = `stalled: ${getFileName(audio.currentSource)}`;
 }
 
 function easeAudioValuesToRest() {
@@ -368,9 +428,27 @@ function getSupportedAudioSources(element, sources) {
 function getPreferredAudioSources() {
   const { AUDIO } = window.OceanConfig;
 
-  return shouldPreferMobileAudioSources() && AUDIO.mobileSources
-    ? AUDIO.mobileSources
-    : AUDIO.sources;
+  if (shouldPreferMobileAudioSources() && AUDIO.mobileSources) {
+    return AUDIO.mobileSources;
+  }
+
+  if (shouldPreferSafariAudioSources() && AUDIO.safariSources) {
+    return AUDIO.safariSources;
+  }
+
+  return AUDIO.sources;
+}
+
+function getAudioSourceMode() {
+  if (shouldPreferMobileAudioSources()) {
+    return "mobile";
+  }
+
+  if (shouldPreferSafariAudioSources()) {
+    return "safari";
+  }
+
+  return "desktop";
 }
 
 function shouldPreferMobileAudioSources() {
@@ -383,6 +461,14 @@ function shouldPreferMobileAudioSources() {
   return /Android|iPhone|iPad|iPod/i.test(userAgent) ||
     (platform === "MacIntel" && touchPoints > 1) ||
     (coarsePointer && smallScreen);
+}
+
+function shouldPreferSafariAudioSources() {
+  const userAgent = navigator.userAgent || "";
+  const isSafari = /Safari/i.test(userAgent) &&
+    !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(userAgent);
+
+  return isSafari;
 }
 
 function selectAudioSource() {
