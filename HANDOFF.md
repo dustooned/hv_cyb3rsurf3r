@@ -2,13 +2,7 @@
 
 ## Current Status
 
-The active root project is a working modular HTML5 Canvas arcade prototype. It is designed to run directly from:
-
-```text
-file:///E:/OneDrive/Documents/New%20project/ocean-grid-prototype/index.html
-```
-
-Current checkout path in this session:
+The active root project is a working modular HTML5 Canvas arcade prototype. It is designed to run directly from `index.html` in the current checkout path:
 
 ```text
 E:\2026\Dev\Experiment\Hurricane Vendetta Demos\Cyber Surfer\ocean-grid-prototype
@@ -29,6 +23,7 @@ No npm install is required for the current browser path.
 - Boost and slow terrain zones rendered as colored main-grid lines in the lofi active version.
 - Terrain sampling that changes forward ocean/world speed without adding scoring, collision, timer, or destination logic.
 - First-pass obstacle system with Seaweed, Tide, and Jumpwave classes stored in `OBSTACLES`.
+- Audio-directed obstacle generation that treats music as spawn influence while safety rules decide whether a candidate is allowed.
 - Seaweed and Tide currently act as obstacle-driven speed zones while the older terrain patch list is disabled.
 - Jumpwave grants temporary speed, limits lane movement to four columns from the activation lane while active, and gives the surfboard a lift/hang/landing bounce.
 - Jumpwave uses a small circular cue on the player's current rail point shortly before the timing moment, and that cue disappears after a successful Space activation.
@@ -68,6 +63,7 @@ The root `src/` folder is now the active source of truth:
 - `terrain.js`: terrain patch data, terrain queries, and speed sampling.
 - `timing.js`: yellow rail-gate timing target, Space hit checks, boost/cooldown state, and timing visuals.
 - `obstacles.js`: obstacle marker drawing, obstacle speed effects, Jumpwave activation, spacing warnings, wrap guarding, and player-rail cue logic.
+- `obstacleGenerator.js`: audio-influenced obstacle spawn intent, generated-obstacle pruning, and safety validation for spacing, overlap, Jumpwave cadence, max density, and safe-lane rules.
 - `player.js`: surfboard lane movement and drawing.
 - `input.js`: keyboard state and movement requests.
 - `main.js`: startup and animation loop only.
@@ -106,12 +102,14 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 
 ## Recommended Next Steps
 
-1. Playtest whether the Jumpwave rail cue appears early enough without cluttering the rail.
-2. Tune `OBSTACLES.classes[].jumpEffect.railCue.reactionTimeMs`, `baseRadius`, and `expandRadius`.
-3. Decide whether the future horizon-line Jumpwave character/sprite should appear before, instead of, or in addition to the player-rail cue.
-4. Decide whether Seaweed and Tide should keep direct speed effects or become timing/avoidance objects.
-5. Keep scoring, failure, destination, and timer systems deferred until obstacle readability is proven.
-6. Define row/column wave masks so constant waves can exist in specific grid regions and stay absent elsewhere.
+1. Playtest whether generated obstacle density feels musical or too busy.
+2. Tune `OBSTACLE_GENERATOR.spawnIntervalMs`, `audioInfluence`, `maxGeneratedObstacles`, `minRowGap`, `minColGap`, and `safeLaneCount`.
+3. Playtest whether the Jumpwave rail cue appears early enough without cluttering the rail.
+4. Tune `OBSTACLES.classes[].jumpEffect.railCue.reactionTimeMs`, `baseRadius`, and `expandRadius`.
+5. Decide whether the future horizon-line Jumpwave character/sprite should appear before, instead of, or in addition to the player-rail cue.
+6. Decide whether Seaweed and Tide should keep direct speed effects or become timing/avoidance objects.
+7. Keep scoring, failure, destination, and timer systems deferred until obstacle readability is proven.
+8. Define row/column wave masks so constant waves can exist in specific grid regions and stay absent elsewhere.
 
 ## Current Obstacle/Terrain Prototype
 
@@ -121,6 +119,8 @@ Obstacle visuals are intentionally separate from terrain/speed effects:
 - `OceanState.world.progress` is the single forward-scroll value consumed by `src/wave.js`.
 - `TERRAIN.patches` is currently empty; Seaweed, Tide, and Jumpwave own the active speed tests.
 - `src/obstacles.js` draws projected obstacle footprints and updates obstacle-driven speed multipliers.
+- `src/obstacleGenerator.js` periodically reads bass, treble, volume, and hit values, chooses a candidate type, and only appends it to `OBSTACLES.placements` after the safety validator passes.
+- Generated placements are tagged with `generated: true` and pruned after `OBSTACLE_GENERATOR.generatedLifetimeMs`; hand-placed baseline obstacles remain untouched.
 - Jumpwave Space activation starts temporary speed, surfboard jump lift/hang/landing, and a four-column movement cap.
 - The Jumpwave rail cue is a small circle on the player's current rail point, appears only shortly before the rail timing moment, and hides after a successful hit.
 - `src/grid.js` still queries terrain visuals, but the old boost/slow color patches are inactive in this checkpoint.
@@ -136,6 +136,7 @@ This checkpoint preserves the first lightweight obstacle interaction layer:
 - Color coding should reinforce obstacle classification but should not be the only readable signal.
 - Obstacle footprints skip drawing/collision while crossing the row-wrap seam to avoid horizon-to-foreground stretching.
 - Warning-only spacing checks detect obstacle anchors closer than four vertices.
+- Generator safety checks reject hard footprint overlap, tight row/column spacing, same-type crowding, Jumpwaves that fire too frequently, screens with too many generated obstacles, and patterns that do not leave enough open lane space.
 - Keep scoring, destination, timer, and full failure states deferred until obstacle placement and readability are proven.
 
 ## Current Diagnostic Notes
@@ -160,6 +161,7 @@ Journal entry, April 25, 2026:
 - Safari desktop follow-up, April 28, 2026: added a Safari-specific MP3/M4A/WAV source list, a mid-playback stall watchdog, and script cache key `safari-audio-stall-016`.
 - Version setup, April 28, 2026: saved `v013-obstacle-wave-design-baseline` before beginning obstacle parameter and selective wave-mask design.
 - Obstacle interaction pass, April 28, 2026: added `src/obstacles.js`, Seaweed/Tide/Jumpwave classes, obstacle speed effects, Jumpwave Space activation, lift/hang/landing bounce, four-column movement cap, spacing warnings, row-wrap guard, and small circular player-rail cue.
+- Music obstacle generator pass, April 28, 2026: added `src/obstacleGenerator.js` and `OBSTACLE_GENERATOR` tuning so audio can influence obstacle type/density while spacing, overlap, Jumpwave cadence, max count, and safe-lane checks keep the generated level readable.
 
 ## Next Chat Starter
 
@@ -170,9 +172,9 @@ We are continuing the Ocean Grid Prototype in E:\2026\Dev\Experiment\Hurricane V
 
 Please read README.md, HANDOFF.md, and EVALUATION.md first. The current app runs directly from index.html with ordered classic scripts. Do not switch to npm/Vite unless explicitly needed.
 
-Current direction: lofi Tempest-like vector ocean, lane-rail surfboard controls, front anchor dots, ease-out retarget movement, centered responsive surfboard art, full-grid audio-reactive visuals, and first-pass Seaweed/Tide/Jumpwave obstacle interactions.
+Current direction: lofi Tempest-like vector ocean, lane-rail surfboard controls, front anchor dots, ease-out retarget movement, centered responsive surfboard art, full-grid audio-reactive visuals, first-pass Seaweed/Tide/Jumpwave obstacle interactions, and a conservative music-influenced obstacle generator.
 
-Current checkpoint: v014-obstacle-interaction-rail-cue.
+Current checkpoint: active root after v014, with music obstacle generator work added but not yet frozen as a new version.
 
-Next task: playtest and tune the Jumpwave rail cue and obstacle readability. The cue is controlled by `OBSTACLES.classes[].jumpEffect.railCue` in `src/config.js`. Consider whether a future horizon-line character/sprite should signal Jumpwave before the player-rail cue. Keep `PERFORMANCE.enableCanvasShadows`, `PERFORMANCE.enableAudioGlow`, and `PERFORMANCE.enableMobileStrokeReduction` false unless deliberately experimenting. Preserve the gesture-first audio fallback path and do not add scoring, failure, timer, destination, or full collision states yet.
+Next task: playtest generated obstacle density and safety. Generator behavior is controlled by `OBSTACLE_GENERATOR` in `src/config.js`; Jumpwave cue timing still lives in `OBSTACLES.classes[].jumpEffect.railCue`. Consider whether a future horizon-line character/sprite should signal Jumpwave before the player-rail cue. Keep `PERFORMANCE.enableCanvasShadows`, `PERFORMANCE.enableAudioGlow`, and `PERFORMANCE.enableMobileStrokeReduction` false unless deliberately experimenting. Preserve the gesture-first audio fallback path and do not add scoring, failure, timer, destination, or full collision states yet.
 ```

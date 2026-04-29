@@ -36,6 +36,13 @@ window.OceanState = {
     spacingWarningKey: "",
   },
 
+  obstacleGenerator: {
+    nextSpawnAt: 0,
+    generatedCount: 0,
+    lastJumpwaveAt: -Infinity,
+    lastRejectedReason: "none",
+  },
+
   performance: {
     lastFrameTime: 0,
     frameMs: 16.7,

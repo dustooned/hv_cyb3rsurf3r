@@ -12,6 +12,7 @@ function animate(time) {
   updatePerformance(time);
   window.OceanAudio.updateAudio();
   window.OceanTiming.updateTiming(time);
+  window.OceanObstacleGenerator.updateObstacleGenerator(time);
   window.OceanObstacles.updateObstacles(time);
   window.OceanTerrain.updateTerrain(time);
   window.OceanWave.updateWave(time);

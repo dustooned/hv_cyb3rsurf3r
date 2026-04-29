@@ -44,6 +44,7 @@ What needs more evaluation:
 - Whether the dashed terrain sample line is the right depth cue or should become invisible/debug-only.
 - Whether terrain patch size and speed multipliers are readable during normal lane movement.
 - Whether Seaweed, Tide, and Jumpwave are readable enough as the first obstacle set.
+- Whether audio-directed obstacle generation feels like the music is shaping the level without creating clutter or unfair walls.
 - Whether the Jumpwave player-rail cue appears early enough and disappears cleanly after a hit.
 - Whether center-cell vector placeholders stay readable when attached to projected grid geometry.
 - Which rows and columns should carry constant wave generation, and which areas should remain calm.
@@ -171,6 +172,21 @@ Current answer to test next:
 - Added a row-wrap guard so obstacle footprints do not stretch from the horizon line to the foreground.
 - Added a small circular player-rail cue for Jumpwave timing that appears near the rail and hides immediately after a successful hit.
 - Deferred scoring, failure, destination, timer, and full collision states.
+
+### 2026-04-28 - Music Obstacle Generator
+
+- Added `src/obstacleGenerator.js` as a separate layer beside hand-authored `OBSTACLES.placements`.
+- Added `OBSTACLE_GENERATOR` config for spawn interval, jitter, max generated count, generated lifetime, row/column spacing, same-type spacing, Jumpwave gap, audio influence, and safe-lane checks.
+- Mapped audio energy to spawn intent: bass and hit energy bias Jumpwave, treble/volume bias Tide, quieter sections bias Seaweed.
+- Added safety rejection before placement: hard footprint overlap, tight spacing, same-type crowding, too-frequent Jumpwaves, too many generated obstacles, and no safe lane.
+- Kept generated obstacles as normal placement objects with `generated: true` so the existing obstacle renderer and gameplay effects stay the source of truth.
+- Kept scoring, failure, destination, timer, and full collision states deferred.
+
+Next evaluation:
+
+- Confirm whether the generated pattern feels musical after audio starts or whether `spawnIntervalMs`, `audioInfluence`, and `maxGeneratedObstacles` need to be reduced.
+- Confirm whether the safety rules leave enough open lane space during louder sections.
+- Decide whether the generator should require audio playback before spawning by setting `OBSTACLE_GENERATOR.requireAudio`.
 
 ## Terrain Design Notes
 

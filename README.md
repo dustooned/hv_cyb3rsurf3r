@@ -20,6 +20,7 @@ Current features:
 - Tap Space when a Jumpwave reaches the player rail cue to trigger a temporary jump-speed state.
 - Fast retargetable arcade timing: 38ms lane switches, 45ms hold pulses, ease-out motion, and mid-switch direction correction.
 - First-pass obstacle classes draw as projected vector markers on the grid: Seaweed, Tide, and Jumpwave.
+- Audio-directed obstacle generation can now add lightweight Seaweed, Tide, and Jumpwave placements from music energy after safety checks approve the spawn.
 - Seaweed and Tide currently act as obstacle-driven speed zones; the older boost/slow terrain patch list is disabled for this obstacle pass.
 - Jumpwave grants temporary speed, adds a short surfboard lift/hang/landing bounce, and limits lane movement to four columns from the activation lane while active.
 - Jumpwave has a small circular player-rail cue that appears shortly before the timing moment and disappears after a successful Space activation.
@@ -57,6 +58,7 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `src/terrain.js` owns boost/slow terrain data and world-speed sampling.
 - `src/timing.js` owns the yellow timing target, rail gate, Space hit checks, and timing boost.
 - `src/obstacles.js` owns obstacle marker drawing, obstacle speed effects, Jumpwave activation, spacing warnings, and rail cue logic.
+- `src/obstacleGenerator.js` owns music-influenced obstacle spawn intent, generated-placement pruning, and safety validation before an obstacle is added.
 - `src/player.js` updates and draws the foreground surfboard marker.
 - `src/input.js` listens for Arrow Left, Arrow Right, A, and D.
 - `src/main.js` owns only startup and the animation loop.
@@ -68,6 +70,9 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `versions/v003-very-fast-arcade-lane-rail` preserves the current lane-rail control checkpoint.
 - `versions/v004-infrastructure-baseline` preserves the current modular baseline before the next speed/infrastructure pass.
 - `versions/v005-retarget-easeout-controls` preserves the current approved lane-control feel before expansion.
+- `versions/v006-terrain-speed-prototype` preserves the first readable boost/slow terrain classification prototype with forward world-speed modulation.
+- `versions/v007-foreground-fade-baseline` preserves the pre-lofi terrain-shape version with horizon clipping, foreground fade, and mobile canvas cleanup.
+- `versions/v008-lofi-grid-terrain` preserves the lofi version with reduced grid/decor density and terrain shown through colored main-grid lines.
 - `versions/v009-audio-reactive-terrain-baseline` preserves the current audio-reactive terrain baseline before broadening audio response across the full main grid.
 - `versions/v010-centered-surfboard-audio-grid-baseline` preserves the current centered-surfboard and full-grid audio response baseline before the next adjustment pass.
 - `versions/v011-audio-performance-diagnostic-baseline` preserves the current audio-start and performance diagnostic pass before deeper mobile/iPad fixes.
@@ -89,6 +94,7 @@ Edit `src/config.js` first when tuning behavior.
 - `OBSTACLES.classes`: obstacle classification, visual footprint, speed effects, Jumpwave tuning, and rail cue settings.
 - `OBSTACLES.placements`: current hand-placed obstacle cells.
 - `OBSTACLES.placementRules`: warning-only spacing checks for obstacle anchors.
+- `OBSTACLE_GENERATOR.*`: audio influence, spawn pacing, max generated obstacles, row/column spacing, same-type spacing, Jumpwave gap, and safe-lane rules.
 - Future wave masking should stay data-driven: explicit rows, columns, or cell ranges can opt into stronger constant wave generation while other grid regions remain calmer or flat.
 - `TIMING.*`: yellow timing target size, hit window, boost multiplier, cooldown, and respawn pacing.
 - `AUDIO.*`: test audio sources, analyzer resolution, smoothing, wave response, shimmer, and glow intensity.
@@ -113,6 +119,7 @@ Current rules:
 - Tide uses a magenta wave-band marker and increases forward world speed.
 - Jumpwave uses a yellow vertical-wave marker, a small circular player-rail cue, Space activation, temporary speed, and a visual surfboard jump.
 - Obstacle placements are explicit data objects with type, cell column, and cell row.
+- Generated obstacles use the same placement shape and are tagged with `generated: true` so they can be pruned without touching the hand-authored baseline.
 - The wave height remains visual-only; terrain speed is tracked separately in `OceanState.world`.
 - Scoring, collision, timer, and destination UI are still intentionally deferred.
 
@@ -127,6 +134,7 @@ Current rules:
 - Guard obstacle footprints against row-wrap stretching from horizon to foreground.
 - Use a small player-rail cue for Jumpwave timing instead of the old yellow timing target.
 - Keep future horizon-line character/sprite cues separate from the current player-rail cue.
+- Treat audio as a level director: bass and transient hits bias Jumpwave, treble/volume bias Tide, quieter sections bias Seaweed, and the safety validator still decides whether the candidate is allowed.
 
 ## Audio Reactivity
 
@@ -156,7 +164,7 @@ Current audio diagnostic behavior as of April 28, 2026:
 - Desktop Safari uses the Safari fallback list, so it starts from `test.mp3` instead of OGG.
 - `AUDIO.delayedAutoStart` is disabled because mobile autoplay attempts can leave the audio context locked and burn through the fallback list before a real gesture.
 - Mobile source order now uses `test.mp3`, `test.m4a`, then `test.wav`; debug text should show `selected: test.mp3 (mobile)`.
-- The script cache-buster is `safari-audio-stall-016`; if a phone or Safari browser still shows `trying: test.ogg`, it is running an older deployed or cached script.
+- The script cache-buster is `music-obstacle-generator-029`; if a phone or Safari browser still shows `trying: test.ogg`, it is running an older deployed or cached script.
 - First pointer, touch, mouse, click, or key gesture calls audio start directly. This gesture-first path is the current reliable baseline.
 - The debug readout reports the source queue and active source, for example `source: selected: test.ogg (desktop)`, `source: selected: test.mp3 (mobile)`, or `source: playing: test.m4a`.
 - If a browser blocks autoplay, the debug readout should show `gesture needed: ...`; tap/click/press a key to retry from the same selected source.
