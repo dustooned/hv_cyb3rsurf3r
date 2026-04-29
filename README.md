@@ -17,10 +17,12 @@ Current features:
 - Foreground surfboard vector shape centered on the active lane rail point, with responsive art scaling.
 - Lane-rail movement on the front edge of the grid.
 - Tap or hold Arrow Left, Arrow Right, A, and D to move between lanes.
-- Tap Space when the yellow timing cell reaches the yellow rail gate while the surfer is in the same lane.
+- Tap Space when a Jumpwave reaches the player rail cue to trigger a temporary jump-speed state.
 - Fast retargetable arcade timing: 38ms lane switches, 45ms hold pulses, ease-out motion, and mid-switch direction correction.
-- Readable boost and slow terrain zones color the main grid and change forward ocean/world speed.
-- Yellow timing targets grant a short high-speed boost when lane alignment and Space timing are correct.
+- First-pass obstacle classes draw as projected vector markers on the grid: Seaweed, Tide, and Jumpwave.
+- Seaweed and Tide currently act as obstacle-driven speed zones; the older boost/slow terrain patch list is disabled for this obstacle pass.
+- Jumpwave grants temporary speed, adds a short surfboard lift/hang/landing bounce, and limits lane movement to four columns from the activation lane while active.
+- Jumpwave has a small circular player-rail cue that appears shortly before the timing moment and disappears after a successful Space activation.
 - Optional local audio playback drives visual-only grid, terrain, and wave reactivity. The current source order is `test.ogg`, `test.mp3`, `test.m4a`, then `test.wav` on non-Safari desktop, while Safari and mobile use MP3/M4A/WAV fallbacks.
 - Audio/FPS debug readout shows playback status, attempted/playing source, bass/treble/volume, FPS, adaptive glow scale, and vector/mobile render mode.
 - Performance protection caps Canvas pixel ratio and keeps expensive Canvas shadow/glow effects disabled by default. Mobile stroke-count reduction remains available behind a config flag, but full vector line density is the default.
@@ -54,6 +56,7 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `src/decor.js` draws the blue procedural side-zone decoration.
 - `src/terrain.js` owns boost/slow terrain data and world-speed sampling.
 - `src/timing.js` owns the yellow timing target, rail gate, Space hit checks, and timing boost.
+- `src/obstacles.js` owns obstacle marker drawing, obstacle speed effects, Jumpwave activation, spacing warnings, and rail cue logic.
 - `src/player.js` updates and draws the foreground surfboard marker.
 - `src/input.js` listens for Arrow Left, Arrow Right, A, and D.
 - `src/main.js` owns only startup and the animation loop.
@@ -70,6 +73,7 @@ In this environment, direct `file:///` loading has been the reliable baseline. V
 - `versions/v011-audio-performance-diagnostic-baseline` preserves the current audio-start and performance diagnostic pass before deeper mobile/iPad fixes.
 - `versions/v012-pure-vector-render-safety` preserves the current corrected pure-vector render baseline with OGG-first audio, mobile fallbacks, and shadow/glow/stroke-reduction bottlenecks disabled by default.
 - `versions/v013-obstacle-wave-design-baseline` preserves the current baseline before designing classified obstacle size/speed parameters, center-vertex vector markers, color coding, and row/column-specific wave generation.
+- `versions/v014-obstacle-interaction-rail-cue` preserves the current obstacle interaction pass with Seaweed/Tide/Jumpwave markers, Jumpwave bounce, four-column cap, spacing warnings, wrap guard, and player-rail cue.
 
 ## Main Tuning Points
 
@@ -81,8 +85,10 @@ Edit `src/config.js` first when tuning behavior.
 - `TERRAIN.sampleDepth`: grid-depth line where the board reads terrain for speed.
 - `TERRAIN.nearHorizonDepth`: first depth where terrain color is allowed to appear.
 - `TERRAIN.foregroundFadeRows`: number of rows before the surfboard rail used to fade terrain out.
-- `TERRAIN.patches`: readable abstract terrain definitions.
-- Future obstacle tuning should start near the terrain model: type/classification, lane or column span, row/depth span, speed effect, color, and a lightweight center-vertex marker shape.
+- `TERRAIN.patches`: readable abstract terrain definitions. This list is currently empty while the obstacle pass owns the active speed-zone tests.
+- `OBSTACLES.classes`: obstacle classification, visual footprint, speed effects, Jumpwave tuning, and rail cue settings.
+- `OBSTACLES.placements`: current hand-placed obstacle cells.
+- `OBSTACLES.placementRules`: warning-only spacing checks for obstacle anchors.
 - Future wave masking should stay data-driven: explicit rows, columns, or cell ranges can opt into stronger constant wave generation while other grid regions remain calmer or flat.
 - `TIMING.*`: yellow timing target size, hit window, boost multiplier, cooldown, and respawn pacing.
 - `AUDIO.*`: test audio sources, analyzer resolution, smoothing, wave response, shimmer, and glow intensity.
@@ -96,29 +102,31 @@ Edit `src/config.js` first when tuning behavior.
 - `PLAYER.allowLaneRetarget`: allows quick opposite-direction correction during a lane shift.
 - `PLAYER.showLaneTicks`: shows or hides the front lane anchor dots.
 
-## Terrain Prototype
+## Obstacle Terrain Prototype
 
-The active mechanic prototype is terrain classification for forward world speed.
+The active mechanic prototype is now obstacle classification layered on top of the terrain-speed idea.
 
 Current rules:
 
-- Boost terrain colors the grid bright cyan/green and increases forward ocean/world speed.
-- Slow terrain colors the grid purple/blue and reduces forward ocean/world speed.
-- Yellow timing cells require lane alignment plus Space timing at the rail gate for a stronger temporary boost.
-- Terrain patches are explicit data objects with type, lane center, lane radius, track start, length, and seed.
+- The old boost/slow terrain patches are disabled so the current screen focuses on Seaweed, Tide, and Jumpwave.
+- Seaweed uses a green checkerboard cell footprint and slows forward world speed.
+- Tide uses a magenta wave-band marker and increases forward world speed.
+- Jumpwave uses a yellow vertical-wave marker, a small circular player-rail cue, Space activation, temporary speed, and a visual surfboard jump.
+- Obstacle placements are explicit data objects with type, cell column, and cell row.
 - The wave height remains visual-only; terrain speed is tracked separately in `OceanState.world`.
 - Scoring, collision, timer, and destination UI are still intentionally deferred.
 
-## Obstacle And Wave Design Baseline
+## Obstacle Interaction Baseline
 
-`v013-obstacle-wave-design-baseline` is the setup checkpoint for the next design pass. No new obstacle runtime has been added yet. The intended direction is:
+`v014-obstacle-interaction-rail-cue` is the current checkpoint for the first obstacle interaction pass. The current direction is:
 
-- Keep obstacle data lightweight and readable before adding collision or scoring.
-- Classify obstacles by type first, then tune size, speed effect, color, and marker shape.
-- Attach placeholder vector graphics to the center point of a grid square/cell, not to arbitrary screen coordinates.
+- Keep obstacle data lightweight and readable before adding scoring, failure, destination, or full collision states.
+- Keep obstacle visuals separate from terrain/speed effects.
+- Attach placeholder vector graphics to projected grid square/cell footprints.
 - Use color as a redundant classification signal alongside shape, so obstacle meaning remains readable at speed.
-- Let the user define rows, columns, and placeholder marker types one step at a time.
-- Explore constant wave generation as a grid mask: some rows/columns can have persistent wave motion while other regions remain quiet, without changing the whole grid.
+- Guard obstacle footprints against row-wrap stretching from horizon to foreground.
+- Use a small player-rail cue for Jumpwave timing instead of the old yellow timing target.
+- Keep future horizon-line character/sprite cues separate from the current player-rail cue.
 
 ## Audio Reactivity
 

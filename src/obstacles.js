@@ -17,6 +17,7 @@ function drawObstacles(time) {
     }
 
     drawObstacleMarker(placement, obstacleClass, time);
+    drawJumpwaveRailCue(placement, obstacleClass, time);
   }
 }
 
@@ -24,9 +25,85 @@ function updateObstacles(time) {
   const state = window.OceanState;
   const active = getObstacleAtPlayerRail();
 
+  validateObstacleSpacing();
   state.obstacles.activeId = active ? active.placement.id : null;
   state.obstacles.activeType = active ? active.obstacleClass.type : "none";
   state.obstacles.speedMultiplier = getObstacleSpeedMultiplier(active, time);
+}
+
+function validateObstacleSpacing() {
+  const { OBSTACLES } = window.OceanConfig;
+  const warnings = [];
+
+  if (!OBSTACLES.enabled || !OBSTACLES.placementRules) {
+    return;
+  }
+
+  for (let i = 0; i < OBSTACLES.placements.length; i += 1) {
+    const first = getPlacementAnchor(OBSTACLES.placements[i]);
+
+    if (!first) {
+      continue;
+    }
+
+    for (let j = i + 1; j < OBSTACLES.placements.length; j += 1) {
+      const second = getPlacementAnchor(OBSTACLES.placements[j]);
+
+      if (!second) {
+        continue;
+      }
+
+      const distance = getPlacementDistance(first, second, OBSTACLES.placementRules.distanceMode);
+
+      if (distance < OBSTACLES.placementRules.minVertexDistance) {
+        warnings.push(`${first.id} / ${second.id}: ${distance.toFixed(2)} vertices`);
+      }
+    }
+  }
+
+  logSpacingWarningsOnce(warnings);
+}
+
+function getPlacementAnchor(placement) {
+  const obstacleClass = getObstacleClass(placement.type);
+
+  if (!obstacleClass) {
+    return null;
+  }
+
+  return {
+    id: placement.id,
+    x: placement.cellCol + obstacleClass.visual.tileSpan.cols * 0.5,
+    y: placement.cellRow + obstacleClass.visual.tileSpan.rows * 0.5,
+  };
+}
+
+function getPlacementDistance(first, second, distanceMode) {
+  const colDistance = Math.abs(first.x - second.x);
+  const rowDistance = Math.abs(first.y - second.y);
+
+  if (distanceMode === "euclidean") {
+    return Math.sqrt(colDistance * colDistance + rowDistance * rowDistance);
+  }
+
+  return colDistance + rowDistance;
+}
+
+function logSpacingWarningsOnce(warnings) {
+  const obstacleState = window.OceanState.obstacles;
+  const warningKey = warnings.join("|");
+
+  if (warningKey === obstacleState.spacingWarningKey) {
+    return;
+  }
+
+  obstacleState.spacingWarningKey = warningKey;
+
+  if (warnings.length === 0) {
+    return;
+  }
+
+  console.warn(`Obstacle placement spacing warning: keep anchors at least ${window.OceanConfig.OBSTACLES.placementRules.minVertexDistance} vertices apart.`, warnings);
 }
 
 function requestObstacleAction(time) {
@@ -49,6 +126,7 @@ function requestObstacleAction(time) {
   window.OceanState.obstacles.jumpMaxColumnHop = obstacleClass.jumpEffect.maxColumnHop;
   window.OceanState.obstacles.feedbackId = placement.id;
   window.OceanState.obstacles.feedbackUntil = time + 260;
+  window.OceanState.obstacles.hiddenRailCueId = placement.id;
   return true;
 }
 
@@ -155,6 +233,71 @@ function drawObstacleMarker(placement, obstacleClass, time) {
   ctx.restore();
 }
 
+function drawJumpwaveRailCue(placement, obstacleClass, time) {
+  if (obstacleClass.type !== "jumpwave" || !obstacleClass.jumpEffect.railCue.enabled) {
+    return;
+  }
+
+  const isApproachingRail = isObstacleApproachingRail(placement, obstacleClass);
+
+  if (!isApproachingRail) {
+    clearHiddenRailCue(placement);
+    return;
+  }
+
+  if (window.OceanState.obstacles.hiddenRailCueId === placement.id) {
+    return;
+  }
+
+  const ctx = window.OceanState.ctx;
+  const visual = obstacleClass.visual;
+  const lane = Math.round(window.OceanState.player.lane);
+  const center = getStableRailPoint(lane);
+  const cue = obstacleClass.jumpEffect.railCue;
+  const pulse = (Math.sin(time * cue.pulseSpeed) + 1) * 0.5;
+  const radius = cue.baseRadius + cue.expandRadius * pulse;
+
+  ctx.save();
+  ctx.strokeStyle = hexToRgba(visual.color, 0.7 + pulse * 0.25);
+  ctx.fillStyle = hexToRgba(visual.color, 0.08 + pulse * 0.08);
+  ctx.lineWidth = 2 + pulse * 1.2;
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+function clearHiddenRailCue(placement) {
+  const obstacleState = window.OceanState.obstacles;
+
+  if (obstacleState.hiddenRailCueId === placement.id) {
+    obstacleState.hiddenRailCueId = null;
+  }
+}
+
+function getStableRailPoint(lane) {
+  const { GRID, PLAYER, VIEW } = window.OceanConfig;
+  const state = window.OceanState;
+  const railRow = Math.max(0, GRID.rows - 1 - PLAYER.railRowsFromFront);
+  const railDepth = railRow / (GRID.rows - 1);
+  const perspectiveDepth = railDepth * railDepth;
+  const centerX = state.width * 0.5;
+  const horizonY = state.height * VIEW.horizonY;
+  const frontY = state.height * VIEW.frontY;
+  const frontHalfWidth = state.width * VIEW.frontHalfWidth;
+  const backHalfWidth = state.width * VIEW.backHalfWidth;
+  const halfWidth = backHalfWidth + (frontHalfWidth - backHalfWidth) * perspectiveDepth;
+  const clampedLane = Math.max(0, Math.min(GRID.cols - 1, lane));
+  const colT = clampedLane / (GRID.cols - 1);
+  const signedCol = colT * 2 - 1;
+
+  return {
+    x: centerX + signedCol * halfWidth,
+    y: horizonY + (frontY - horizonY) * perspectiveDepth,
+  };
+}
+
 function getCellFootprintCorners(cellCol, cellRow, cellCols, cellRows) {
   const { GRID } = window.OceanConfig;
   const vertices = window.OceanState.vertices;
@@ -167,12 +310,22 @@ function getCellFootprintCorners(cellCol, cellRow, cellCols, cellRows) {
     return null;
   }
 
+  // Rows scroll and wrap from the foreground back to the horizon. If a footprint
+  // straddles that wrap seam, its corners would stretch across the whole grid.
+  if (footprintCrossesDepthWrap(vertices[top][left], vertices[bottom][left])) {
+    return null;
+  }
+
   return {
     backLeft: vertices[top][left],
     backRight: vertices[top][right],
     frontRight: vertices[bottom][right],
     frontLeft: vertices[bottom][left],
   };
+}
+
+function footprintCrossesDepthWrap(topVertex, bottomVertex) {
+  return Math.abs(topVertex.depth - bottomVertex.depth) > 0.5;
 }
 
 function getCellFootprintCenter(footprint) {
@@ -235,13 +388,47 @@ function playerOverlapsObstacle(placement, obstacleClass) {
     ? obstacleClass.timing.laneWindow
     : 0.5;
   const depthWindow = getObstacleDepthWindow(obstacleClass);
+  const footprint = getCellFootprintCorners(
+    placement.cellCol,
+    placement.cellRow,
+    visual.tileSpan.cols,
+    visual.tileSpan.rows,
+  );
   const minLane = placement.cellCol - laneWindow;
   const maxLane = placement.cellCol + visual.tileSpan.cols + laneWindow;
   const depthRange = getObstacleDepthRange(placement, obstacleClass);
   const laneMatches = playerLane >= minLane && playerLane <= maxLane;
   const depthMatches = depthIsInsideRange(railDepth, depthRange.min - depthWindow, depthRange.max + depthWindow);
 
-  return laneMatches && depthMatches;
+  return Boolean(footprint) && laneMatches && depthMatches;
+}
+
+function isObstacleApproachingRail(placement, obstacleClass) {
+  const { GRID, PLAYER } = window.OceanConfig;
+  const railRow = Math.max(0, GRID.rows - 1 - PLAYER.railRowsFromFront);
+  const railDepth = railRow / (GRID.rows - 1);
+  const depthRange = getObstacleDepthRange(placement, obstacleClass);
+  const cue = obstacleClass.jumpEffect.railCue;
+  const reactionDepth = Math.max(
+    cue.minDepthWindow,
+    window.OceanState.world.currentSpeed * cue.reactionTimeMs,
+  );
+
+  if (depthIsInsideRange(railDepth, depthRange.min, depthRange.max)) {
+    return true;
+  }
+
+  if (depthRange.max > railDepth) {
+    return false;
+  }
+
+  return railDepth - depthRange.max <= reactionDepth;
+}
+
+function getWrappedDepthDistance(a, b) {
+  const distance = Math.abs(a - b);
+
+  return Math.min(distance, 1 - distance);
 }
 
 function getObstacleDepthRange(placement, obstacleClass) {

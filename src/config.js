@@ -26,6 +26,11 @@ window.OceanConfig = {
     // Markers attach to cell centers.
     // cellCol is 0..GRID.cols - 2. cellRow is 0..GRID.rows - 2.
     centerAnchor: "cell-center",
+    placementRules: {
+      minVertexDistance: 4,
+      distanceMode: "manhattan",
+      warnOnly: true,
+    },
     classes: [
       {
         type: "seaweed",
@@ -74,6 +79,14 @@ window.OceanConfig = {
           hangDuration: 160,
           landDuration: 260,
           bouncePixels: 8,
+          railCue: {
+            enabled: true,
+            baseRadius: 8,
+            expandRadius: 6,
+            pulseSpeed: 0.012,
+            reactionTimeMs: 700,
+            minDepthWindow: 0.035,
+          },
         },
         functionNote: "Increases speed by 200% and later moves the player over four columns.",
       },

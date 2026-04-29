@@ -19,6 +19,7 @@ The root project folder remains the active working copy. When a prototype state 
 - `v011-audio-performance-diagnostic-baseline`: current checkpoint with responsive surfboard art scaling, audio-start diagnostics, FPS/glow readout, and performance throttling before deeper iPad/mobile fixes.
 - `v012-pure-vector-render-safety`: current corrected checkpoint with OGG-first audio restored, mobile fallbacks retained, and Canvas shadows/glow/stroke-reduction bottlenecks disabled by default.
 - `v013-obstacle-wave-design-baseline`: current checkpoint before classified obstacle size/speed parameters, center-cell vector markers, color coding, and selective row/column wave generation.
+- `v014-obstacle-interaction-rail-cue`: current checkpoint with Seaweed/Tide/Jumpwave obstacle markers, obstacle speed effects, Jumpwave bounce/hang, four-column cap, spacing warnings, row-wrap guard, and player-rail cue.
 
 ## Active Additions After v008
 
@@ -31,3 +32,4 @@ The root project folder remains the active working copy. When a prototype state 
 - Gesture-first audio fallback: current root uses multi-format audio assets, OGG-first desktop playback, MP3/M4A/WAV mobile playback, disabled delayed autoplay, and script cache key `mobile-audio-fallback-015`.
 - Safari audio stall fallback: current root gives Safari its own MP3/M4A/WAV source list, watches for mid-playback stalls, and uses script cache key `safari-audio-stall-016`.
 - Obstacle/wave design setup: current root is ready for data-first obstacle classes, projected center-cell vector markers, color-coded indicators, and selective wave masks by row/column/cell range.
+- Obstacle interaction rail cue: current root has first-pass obstacle classes in `OBSTACLES`, a dedicated `src/obstacles.js` module, Jumpwave Space activation, surfboard bounce/hang, four-column movement cap, wrap-stretch guard, warning-only spacing checks, and a small player-rail cue.

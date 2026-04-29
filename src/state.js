@@ -32,6 +32,8 @@ window.OceanState = {
     jumpMaxColumnHop: 0,
     feedbackId: null,
     feedbackUntil: 0,
+    hiddenRailCueId: null,
+    spacingWarningKey: "",
   },
 
   performance: {

@@ -28,7 +28,12 @@ No npm install is required for the current browser path.
 - Ease-out lane movement and mid-switch retargeting so quick direction reversals feel less like recoil.
 - Boost and slow terrain zones rendered as colored main-grid lines in the lofi active version.
 - Terrain sampling that changes forward ocean/world speed without adding scoring, collision, timer, or destination logic.
-- Yellow timing targets that grant a short high-speed boost when the surfer is lane-aligned and Space is pressed at the rail gate.
+- First-pass obstacle system with Seaweed, Tide, and Jumpwave classes stored in `OBSTACLES`.
+- Seaweed and Tide currently act as obstacle-driven speed zones while the older terrain patch list is disabled.
+- Jumpwave grants temporary speed, limits lane movement to four columns from the activation lane while active, and gives the surfboard a lift/hang/landing bounce.
+- Jumpwave uses a small circular cue on the player's current rail point shortly before the timing moment, and that cue disappears after a successful Space activation.
+- Obstacle footprints are guarded against the row-wrap seam so shapes do not stretch from horizon to foreground.
+- Warning-only obstacle spacing checks report when placement anchors are closer than four vertices.
 - Optional local audio analysis that drives visual-only wave height, terrain pulse, shimmer, and vector line response. Non-Safari desktop keeps `assets/audio/test.ogg` first, while Safari and mobile use MP3/M4A/WAV fallback lists.
 - Audio/FPS debug readout showing playback status, source status, bass/treble/volume, FPS, adaptive glow scale, and vector/mobile render mode.
 - Performance safeguards that cap Canvas pixel ratio and keep expensive Canvas shadows/glow disabled by default. Mobile stroke-count reduction is still available behind a config flag, but full vector line density is the default.
@@ -37,7 +42,7 @@ No npm install is required for the current browser path.
 
 - `ArrowLeft` or `A`: move left one lane, or pulse left while held.
 - `ArrowRight` or `D`: move right one lane, or pulse right while held.
-- `Space`: trigger the yellow timing gate if the surfer is aligned with the yellow target lane.
+- `Space`: trigger Jumpwave when the rail cue is visible and the surfer is aligned with the Jumpwave timing zone.
 
 Current arcade timing in `src/config.js`:
 
@@ -62,6 +67,7 @@ The root `src/` folder is now the active source of truth:
 - `decor.js`: blue decorative side-zone rendering.
 - `terrain.js`: terrain patch data, terrain queries, and speed sampling.
 - `timing.js`: yellow rail-gate timing target, Space hit checks, boost/cooldown state, and timing visuals.
+- `obstacles.js`: obstacle marker drawing, obstacle speed effects, Jumpwave activation, spacing warnings, wrap guarding, and player-rail cue logic.
 - `player.js`: surfboard lane movement and drawing.
 - `input.js`: keyboard state and movement requests.
 - `main.js`: startup and animation loop only.
@@ -83,6 +89,7 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 - `v011-audio-performance-diagnostic-baseline`: current checkpoint with responsive board scaling, audio-start diagnostics, FPS/glow readout, and mobile/iPad issue notes before deeper compatibility work.
 - `v012-pure-vector-render-safety`: current corrected checkpoint with OGG-first audio restored, mobile fallbacks retained, and Canvas shadows/glow/stroke-reduction bottlenecks disabled by default.
 - `v013-obstacle-wave-design-baseline`: current planning checkpoint before adding classified obstacle size/speed parameters, center-vertex vector markers, color coding, and selective row/column wave generation.
+- `v014-obstacle-interaction-rail-cue`: current checkpoint with obstacle class rendering, Jumpwave speed/bounce/hang, four-column movement cap, spacing warnings, wrap guard, and player-rail cue.
 
 ## Lessons Learned
 
@@ -99,41 +106,37 @@ The project intentionally uses ordered classic scripts in `index.html` instead o
 
 ## Recommended Next Steps
 
-1. Continue testing whether `38ms` ease-out movement is fast enough after longer play.
-2. Decide whether lane dots are permanent UI, debug-only, or stylized game markers.
-3. Playtest whether lofi terrain-colored grid lines are readable at speed.
-4. Use terrain to affect forward ocean/world speed, not lane-change speed.
-5. Keep two readable terrain types before adding hazards or scoring:
-   - Boost terrain: bright cyan/green grid lines, increases world speed.
-   - Slow terrain: purple/blue grid lines, reduces world speed.
-6. Keep terrain readable through the grid line language before adding new visual systems.
-7. Test `v012-pure-vector-render-safety` on desktop and iPad/mobile before re-enabling any shadows, glow, or stroke-count reduction.
-8. If FPS is still low in pure-vector mode, tune geometry/path complexity carefully without skipping visible grid lines by default.
-9. Start the obstacle pass with data-only definitions before adding collision, timer, scoring, or destination logic.
-10. Define obstacle classes by size, speed effect, color, and center-cell vector marker.
-11. Define row/column wave masks so constant waves can exist in specific grid regions and stay absent elsewhere.
+1. Playtest whether the Jumpwave rail cue appears early enough without cluttering the rail.
+2. Tune `OBSTACLES.classes[].jumpEffect.railCue.reactionTimeMs`, `baseRadius`, and `expandRadius`.
+3. Decide whether the future horizon-line Jumpwave character/sprite should appear before, instead of, or in addition to the player-rail cue.
+4. Decide whether Seaweed and Tide should keep direct speed effects or become timing/avoidance objects.
+5. Keep scoring, failure, destination, and timer systems deferred until obstacle readability is proven.
+6. Define row/column wave masks so constant waves can exist in specific grid regions and stay absent elsewhere.
 
-## Current Terrain Prototype
+## Current Obstacle/Terrain Prototype
 
-Terrain is intentionally separate from wave height:
+Obstacle visuals are intentionally separate from terrain/speed effects:
 
-- `src/config.js` has lofi `GRID`/`DECOR` density values plus `TERRAIN` tuning for base speed, boost/slow multipliers, sample depth, and patch definitions.
+- `src/config.js` has lofi `GRID`/`DECOR` density values plus `TERRAIN` base speed and `OBSTACLES` class/placement data.
 - `OceanState.world.progress` is the single forward-scroll value consumed by `src/wave.js`.
-- `src/terrain.js` samples the player's current lane against visible terrain at `TERRAIN.sampleDepth`.
-- `src/grid.js` queries terrain while drawing each grid line and colors boost/slow zones directly on the main grid.
-- `src/timing.js` draws the yellow target cell and rail gate, then overrides world speed during successful timing boosts.
+- `TERRAIN.patches` is currently empty; Seaweed, Tide, and Jumpwave own the active speed tests.
+- `src/obstacles.js` draws projected obstacle footprints and updates obstacle-driven speed multipliers.
+- Jumpwave Space activation starts temporary speed, surfboard jump lift/hang/landing, and a four-column movement cap.
+- The Jumpwave rail cue is a small circle on the player's current rail point, appears only shortly before the rail timing moment, and hides after a successful hit.
+- `src/grid.js` still queries terrain visuals, but the old boost/slow color patches are inactive in this checkpoint.
 - `src/audio.js` analyzes one mixed track from local audio sources; current audio values affect visuals only, not terrain generation or timing spawns.
 - No scoring, collision, timer, destination, or failure states have been added.
 
-## Obstacle And Wave Design Baseline
+## Obstacle Interaction Baseline
 
-This checkpoint is for planning the next lightweight grid-system layer:
+This checkpoint preserves the first lightweight obstacle interaction layer:
 
-- Obstacle definitions should live as data first, likely near or beside terrain data, with explicit `type`, lane/column range, row/depth range, speed effect, color, and marker shape fields.
-- Center-vertex or center-cell markers should be projected from grid geometry, so placeholder vector graphics stay attached to the grid instead of floating in screen space.
+- Obstacle definitions live in `OBSTACLES.classes` with separate `visual`, `terrainEffect`, `timing`, `collision`, and `jumpEffect` fields.
+- Center-cell markers are projected from grid geometry so placeholder vector graphics stay attached to the grid.
 - Color coding should reinforce obstacle classification but should not be the only readable signal.
-- Constant wave generation should become a mask or rule set by row/column/cell range, allowing active wave bands in some areas and calm grid regions in others.
-- Keep collision, scoring, destination, and timer systems deferred until obstacle placement and readability are proven.
+- Obstacle footprints skip drawing/collision while crossing the row-wrap seam to avoid horizon-to-foreground stretching.
+- Warning-only spacing checks detect obstacle anchors closer than four vertices.
+- Keep scoring, destination, timer, and full failure states deferred until obstacle placement and readability are proven.
 
 ## Current Diagnostic Notes
 
@@ -156,6 +159,7 @@ Journal entry, April 25, 2026:
 - Final working baseline for now: `AUDIO.delayedAutoStart` is `false`, script cache key is `mobile-audio-fallback-015`, desktop source order is OGG/MP3/M4A/WAV, mobile source order is MP3/M4A/WAV, and audio starts from a real tap/click/key gesture.
 - Safari desktop follow-up, April 28, 2026: added a Safari-specific MP3/M4A/WAV source list, a mid-playback stall watchdog, and script cache key `safari-audio-stall-016`.
 - Version setup, April 28, 2026: saved `v013-obstacle-wave-design-baseline` before beginning obstacle parameter and selective wave-mask design.
+- Obstacle interaction pass, April 28, 2026: added `src/obstacles.js`, Seaweed/Tide/Jumpwave classes, obstacle speed effects, Jumpwave Space activation, lift/hang/landing bounce, four-column movement cap, spacing warnings, row-wrap guard, and small circular player-rail cue.
 
 ## Next Chat Starter
 
@@ -166,9 +170,9 @@ We are continuing the Ocean Grid Prototype in E:\2026\Dev\Experiment\Hurricane V
 
 Please read README.md, HANDOFF.md, and EVALUATION.md first. The current app runs directly from index.html with ordered classic scripts. Do not switch to npm/Vite unless explicitly needed.
 
-Current direction: lofi Tempest-like vector ocean, lane-rail surfboard controls, front anchor dots, ease-out retarget movement, centered responsive surfboard art, full-grid audio-reactive visuals, and readable boost/slow terrain shown as colored grid lines that modulate forward world speed.
+Current direction: lofi Tempest-like vector ocean, lane-rail surfboard controls, front anchor dots, ease-out retarget movement, centered responsive surfboard art, full-grid audio-reactive visuals, and first-pass Seaweed/Tide/Jumpwave obstacle interactions.
 
-Current checkpoint: v013-obstacle-wave-design-baseline.
+Current checkpoint: v014-obstacle-interaction-rail-cue.
 
-Next task: design obstacle and wave parameters one step at a time. Start with data definitions for obstacle classes: size, speed effect, color, lane/column span, row/depth span, and a placeholder vector marker attached to the center of a grid cell. Then define which rows/columns should receive constant wave generation and which should stay calm. Keep `PERFORMANCE.enableCanvasShadows`, `PERFORMANCE.enableAudioGlow`, and `PERFORMANCE.enableMobileStrokeReduction` false unless deliberately experimenting. Preserve the gesture-first audio fallback path and do not add scoring, collision, timer, or destination logic yet.
+Next task: playtest and tune the Jumpwave rail cue and obstacle readability. The cue is controlled by `OBSTACLES.classes[].jumpEffect.railCue` in `src/config.js`. Consider whether a future horizon-line character/sprite should signal Jumpwave before the player-rail cue. Keep `PERFORMANCE.enableCanvasShadows`, `PERFORMANCE.enableAudioGlow`, and `PERFORMANCE.enableMobileStrokeReduction` false unless deliberately experimenting. Preserve the gesture-first audio fallback path and do not add scoring, failure, timer, destination, or full collision states yet.
 ```

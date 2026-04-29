@@ -43,7 +43,8 @@ What needs more evaluation:
 - Whether wave geometry should affect movement, hazards, or scoring.
 - Whether the dashed terrain sample line is the right depth cue or should become invisible/debug-only.
 - Whether terrain patch size and speed multipliers are readable during normal lane movement.
-- Which obstacle classes need distinct size, speed, color, and marker-shape parameters.
+- Whether Seaweed, Tide, and Jumpwave are readable enough as the first obstacle set.
+- Whether the Jumpwave player-rail cue appears early enough and disappears cleanly after a hit.
 - Whether center-cell vector placeholders stay readable when attached to projected grid geometry.
 - Which rows and columns should carry constant wave generation, and which areas should remain calm.
 - Whether full-grid audio response should be more line-glow-driven and less vertex-height-driven.
@@ -151,11 +152,25 @@ How should classified obstacles and selective wave bands sit on top of the terra
 
 Current answer to test next:
 
-- Obstacle classes should be data-first: size, speed effect, color, marker shape, lane/column span, and row/depth span.
-- Placeholder vector graphics should attach to the projected center of a grid cell.
+- Obstacle classes should stay data-first: visual footprint, speed effect, timing, collision label, and Jumpwave tuning are separate fields.
+- Placeholder vector graphics should attach to projected grid cells and avoid drawing across row-wrap seams.
 - Color should reinforce the class, but shape should carry meaning too.
-- Constant wave generation should be allowed in selected rows/columns/cells while other grid areas remain calm.
-- Collision, scoring, timer, and destination rules should wait until obstacle readability is proven.
+- Jumpwave should use a player-rail cue for the exact hit moment, with a future horizon-line character/sprite reserved for earlier warning.
+- Constant wave generation should eventually be allowed in selected rows/columns/cells while other grid areas remain calm.
+- Scoring, failure, timer, destination, and full collision rules should wait until obstacle readability is proven.
+
+### 2026-04-28 - v014 Obstacle Interaction Rail Cue
+
+- Added `src/obstacles.js` as the first obstacle interaction module.
+- Defined Seaweed, Tide, and Jumpwave in `OBSTACLES.classes` with separate visual, terrain effect, timing, collision, and jump-effect data.
+- Disabled old terrain patches so obstacle speed effects are the active mechanic test.
+- Drew Seaweed as a projected green checkerboard, Tide as a magenta wave-band marker, and Jumpwave as a yellow vertical-wave marker.
+- Added Jumpwave Space activation without forced lane movement.
+- Added temporary Jumpwave speed, four-column movement cap from the activation lane, and surfboard lift/hang/landing bounce.
+- Added warning-only placement spacing checks for obstacle anchors closer than four vertices.
+- Added a row-wrap guard so obstacle footprints do not stretch from the horizon line to the foreground.
+- Added a small circular player-rail cue for Jumpwave timing that appears near the rail and hides immediately after a successful hit.
+- Deferred scoring, failure, destination, timer, and full collision states.
 
 ## Terrain Design Notes
 
